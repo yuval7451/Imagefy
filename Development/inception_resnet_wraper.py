@@ -21,7 +21,7 @@ from keras.preprocessing.image import load_img, img_to_array
 
 from utils.score_utils import mean_score, std_score
 from utils.common import WEIGHTS_FOLDER_PATH, INCEPTION_RESNET_WEIGHTS, IMAGE_SIZE
-from utils.data_utils import load_data, pipeline_to_nn
+from utils.data_utils import load_data, pipeline_to_tensor
 
 class InceptionResnetWraper(object):
     """
@@ -115,7 +115,7 @@ image_dir = "test"
 Inception = InceptionResnetWraper(gpu=True, verbose=True)
 # images = Inception.load_images(image_dir)
 images = load_data(image_dir, resize=True, size=IMAGE_SIZE)
-images = pipeline_to_nn(images)
+images = pipeline_to_tensor(images)
 scores = Inception.predict(images)
 Inception.rank(scores)
-print(scors)
+print(scores)
