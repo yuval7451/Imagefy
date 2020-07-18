@@ -4,13 +4,6 @@
 import numpy as np
 import tensorflow as tf
 
-"""
-##  with tf.device(self.device):
-['ALL_DISTANCES', 'CLUSTER_CENTERS_VAR_NAME', 'CLUSTER_INDEX', 'COSINE_DISTANCE', 'KMEANS_PLUS_PLUS_INIT', 'RANDOM_INIT', 'SCORE', 
-'SQUARED_EUCLIDEAN_DISTANCE', 'cluster_centers', 'config', 'eval_dir', 'evaluate', 'experimental_export_all_saved_models', 'export_saved_model',
-'export_savedmodel', 'get_variable_names', 'get_variable_value', 'latest_checkpoint', 'model_dir', 'model_fn', 'params', 'predict', 
-'predict_cluster_index', 'score', 'train', 'transform']
-"""
 k = 5
 n = 100
 variables = 2

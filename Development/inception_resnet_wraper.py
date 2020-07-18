@@ -4,7 +4,7 @@ Author: Yuval Kaneti⭐
 Code Taken From: https://github.com/titu1994/neural-image-assessment/blob/master/
 ## Example Usage ##
 image_dir = "YOUR\\IMAGE\\DIR"
-Inception = InceptionResnetWraper(gpu=True) -> Only If CuDNN Installed Use GPU Else gpu=False
+Inception = InceptionResnetWraper(gpu=True, _verbose=True) -> Only If CuDNN Installed Use GPU Else gpu=False
 images = Inception.load_images(image_dir)
 scores = Inception.predict(images)
 """
@@ -20,34 +20,37 @@ from keras.applications.inception_resnet_v2 import preprocess_input
 from keras.preprocessing.image import load_img, img_to_array
 
 from utils.score_utils import mean_score, std_score
-from utils.common import WEIGHTS_FOLDER_PATH, INCEPTION_RESNET_WEIGHTS
-
+from utils.common import WEIGHTS_FOLDER_PATH, INCEPTION_RESNET_WEIGHTS, IMAGE_SIZE
+from utils.data_utils import load_data, pipeline_to_nn
 
 class InceptionResnetWraper(object):
     """
     InceptionResnetWraper: Is a Wraper Above a Pre-Trained InceptionResNetV2 on @AVA2 Dataset 
     """
     #### FUNCTIONS ####
-    def __init__(self, gpu : bool):
+    def __init__(self, gpu : bool, verbose : bool):
         """
         :type
         """  
         self.weights_path = os.path.join(WEIGHTS_FOLDER_PATH, INCEPTION_RESNET_WEIGHTS)
-        self.target_size = (224, 224)
+        self.target_size = (IMAGE_SIZE, IMAGE_SIZE)
+        self._verbose = verbose
         self.model = self._load_modal(gpu=gpu)
 
 
     def _load_modal(self, gpu : bool):
         """
         :type gpu: C{bool} -> Should Keras Use a GPU or CPU
+        :type _verbose: {bool} -> Vebosity
         :return model: C{keras.models.Model} -> The Loaded Model
         """
         if gpu:
             self.device = '/GPU:0'            
         else:
             self.device = '/CPU:0'
-
-        print(f"Using {self.device}")
+            
+        if self._verbose:
+            print(f"Using {self.device}")
         with tf.device(self.device):
             base_model = InceptionResNetV2(input_shape=(None, None, 3), include_top=False, pooling='avg', weights=None)
             x = Dropout(0.75)(base_model.output)
@@ -63,7 +66,8 @@ class InceptionResnetWraper(object):
         :type image_dir: C{str} -> The Image Directory
         :return images: C{list} -> A List Containing Tuples (image_name, image_tensor)
         """
-        print("Loading images from directory : ", image_dir)
+        if self._verbose:
+            print("Loading images from directory : ", image_dir)
         images = []
         for image_name in os.listdir(image_dir):
             image_path = os.path.join(image_dir, image_name)
@@ -88,9 +92,11 @@ class InceptionResnetWraper(object):
                 mean = mean_score(scores)
                 std = std_score(scores)
                 score_list.append((image_name, mean))
-                print("Evaluating : ", image_name)
-                print("NIMA Score : %0.3f +- (%0.3f)" % (mean, std))
+                if self._verbose:
+                    print("Evaluating : ", image_name)
+                    print("NIMA Score : %0.3f +- (%0.3f)" % (mean, std))
 
+        score_list = sorted(score_list, key=lambda x: x[1], reverse=True)
         return score_list
 
     def rank(self, score_list : list):
@@ -105,9 +111,11 @@ class InceptionResnetWraper(object):
 
 
 
-# image_dir = "test"
-# Inception = InceptionResnetWraper(gpu=True)
+image_dir = "test"
+Inception = InceptionResnetWraper(gpu=True, verbose=True)
 # images = Inception.load_images(image_dir)
-# scores = Inception.predict(images)
-# Inception.rank(scores)
-# print(scors)
+images = load_data(image_dir, resize=True, size=IMAGE_SIZE)
+images = pipeline_to_nn(images)
+scores = Inception.predict(images)
+Inception.rank(scores)
+print(scors)

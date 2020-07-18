@@ -7,24 +7,33 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 
+from utils.common import IMAGE_SIZE
 #### FUNCTIONS ####
-def load_data(folder_path : str, resize=False, size=None) -> list:
+def pipeline_to_cluster(data):
+    return [tup[1] for tup in tqdm(data)]
+
+
+def pipeline_to_nn(data):
+    return [(tup[0], tup[1].reshape(IMAGE_SIZE, IMAGE_SIZE, 3)) for tup in tqdm(data)]
+    
+def load_data(folder_path : str, resize=False, size=IMAGE_SIZE) :
     """
     """
     print(f"Loading {len(list(os.listdir(folder_path)))} Images")
     images = []    
     for image_name in tqdm(os.listdir(folder_path)):    
-        # images.append(io.imread(os.path.join(folder_path, image_name)))
         if resize and size is not None:
             image_path = os.path.join(folder_path, image_name)
             cv2_image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
-            images.append(np.resize(cv2_image, (size, size)).flatten())
+            images.append((image_path, np.resize(cv2_image, (size, size)).flatten()))
         else:
-            images.append(np.asarray(cv2.cvtColor(cv2.imread(os.path.join(folder_path, image_name)), cv2.COLOR_BGR2RGB).flatten()))
+            image_path = os.path.join(folder_path, image_name)
+            cv2_image = np.asarray(cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB))
+            images.append((image_path, cv2_image.flatten()))
+# 
+    return np.asarray(images)  
 
-    return np.asarray(images)   
-
-def load_test_labels(folder_path : str) -> list:
+def load_test_labels(folder_path : str):
     """
 
     """
@@ -37,7 +46,7 @@ def load_test_labels(folder_path : str) -> list:
     return labels
 
 
-def save_data(folder_path : str, data : list) -> None:
+def save_data(folder_path : str, data : list):
     """
     """
     print(f"saving image to {folder_path}")
