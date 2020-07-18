@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Author: Yuval Kaneti
 
-#### IMPROTS ####
+#### IMPORTS ####
 import os
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -13,7 +13,6 @@ from utils.common import DATA_FOLDER_PATH, GOPRO_IMAGES_FOLDER, TEST_IMAGES_FOLD
 from utils.data_utils import load_data, load_test_labels
 
 #### FUNCTIONS ####
-
 def kdim_to_ndim(array, dim=2):
     return TSNE(n_components=dim).fit_transform(array)
 

@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# Author: Yuval Kaneti⭐
+# Remarks *havnt Checked if wors yet
+#### IMPROTS ####
 import numpy as np
 import tensorflow as tf
 

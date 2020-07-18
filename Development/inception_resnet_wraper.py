@@ -1,13 +1,15 @@
+#! /usr/bin/env python3
 """
+Author: Yuval Kaneti⭐
 Code Taken From: https://github.com/titu1994/neural-image-assessment/blob/master/
-Example Usage:
-
+## Example Usage ##
 image_dir = "YOUR\\IMAGE\\DIR"
 Inception = InceptionResnetWraper(gpu=True) -> Only If CuDNN Installed Use GPU Else gpu=False
 images = Inception.load_images(image_dir)
 scores = Inception.predict(images)
-    
 """
+
+#### IMPROTS ####
 import os
 import numpy as np
 import tensorflow as tf
@@ -25,7 +27,7 @@ class InceptionResnetWraper(object):
     """
     InceptionResnetWraper: Is a Wraper Above a Pre-Trained InceptionResNetV2 on @AVA2 Dataset 
     """
-    #### CONSTANTS ####
+    #### FUNCTIONS ####
     def __init__(self, gpu : bool):
         """
         :type

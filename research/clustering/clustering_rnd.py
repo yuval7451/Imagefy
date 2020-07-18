@@ -1,19 +1,15 @@
 #!/usr/bin/env python3
-# Author: Yuval Kanetid
+# Author: Yuval Kaneti⭐
 
 #### IMPROTS ####
-# import sys; sys.path.insert(0,'..')
 import os
 from sklearn.cluster import KMeans, DBSCAN
 import numpy as np
 from utils.common import DATA_FOLDER_PATH, GOPRO_IMAGES_FOLDER, TEST_IMAGES_FOLDER
 from utils.data_utils import load_data
 
-#### CONSTANTS ####
-
 
 #### FUNCTIONS ####
-
 def KMEANS_cluster(data, n_digits = 2):
     estimator = KMeans(init='k-means++', n_clusters=n_digits, n_init=10).fit(data)
     labels = estimator.labels_
@@ -38,7 +34,6 @@ def DBSCAN_cluster(data):
     print('Estimated number of noise points: %d' % n_noise_)
     return estimator
 
-# db = DBSCAN(eps=0.3, min_samples=10).fit(X)
 
 
 def main():
