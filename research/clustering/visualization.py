@@ -45,29 +45,29 @@ def plot_2d(array, labels = None):
 
     plt.show()
 
-def main():
-    TEST = False
-    DIM = 3
-    if TEST:
-        PATH = os.path.join(DATA_FOLDER_PATH, TEST_IMAGES_FOLDER)
-        data = load_data(PATH)
-        print(data.shape)
-        transformed = kdim_to_ndim(data, dim = DIM)
-        print(transformed)
-        if DIM == 2:
-            plot_2d(transformed, labels = load_test_labels(PATH))
-        else:
-            plot_3d(transformed, labels = load_test_labels(PATH))
-    else:
-        PATH = os.path.join(DATA_FOLDER_PATH, GOPRO_IMAGES_FOLDER)
-        data = load_data(PATH)
-        print(data.shape)
-        transformed = kdim_to_ndim(data, dim = DIM)
-        print(transformed)
-        if DIM == 2:
-            plot_2d(transformed)
-        else:
-            plot_3d(transformed)  
+# def main():
+#     TEST = False
+#     DIM = 3
+#     if TEST:
+#         PATH = os.path.join(DATA_FOLDER_PATH, TEST_IMAGES_FOLDER)
+#         data = load_data(PATH)
+#         print(data.shape)
+#         transformed = kdim_to_ndim(data, dim = DIM)
+#         print(transformed)
+#         if DIM == 2:
+#             plot_2d(transformed, labels = load_test_labels(PATH))
+#         else:
+#             plot_3d(transformed, labels = load_test_labels(PATH))
+#     else:
+#         PATH = os.path.join(DATA_FOLDER_PATH, GOPRO_IMAGES_FOLDER)
+#         data = load_data(PATH)
+#         print(data.shape)
+#         transformed = kdim_to_ndim(data, dim = DIM)
+#         print(transformed)
+#         if DIM == 2:
+#             plot_2d(transformed)
+#         else:
+#             plot_3d(transformed)  
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()

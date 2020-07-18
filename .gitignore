@@ -1,5 +1,6 @@
-.jpg
-.jpeg
-.png
-.pyc
-__pycache__
+*.jpg
+*.jpeg
+*.JPG
+*.png
+*.pyc
+__pycache__/

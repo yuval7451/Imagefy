@@ -103,3 +103,11 @@ class InceptionResnetWraper(object):
         for i, (name, score) in enumerate(score_list):
             print("%d)" % (i + 1), "%s : Score = %0.5f" % (name, score))        
 
+
+
+# image_dir = "test"
+# Inception = InceptionResnetWraper(gpu=True)
+# images = Inception.load_images(image_dir)
+# scores = Inception.predict(images)
+# Inception.rank(scores)
+# print(scors)
