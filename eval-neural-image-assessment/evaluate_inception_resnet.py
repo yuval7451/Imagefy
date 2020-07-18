@@ -4,12 +4,12 @@ import numpy as np
 import argparse
 # from path import Path
 
+import tensorflow as tf
 from keras.models import Model
 from keras.layers import Dense, Dropout
 from keras.applications.inception_resnet_v2 import InceptionResNetV2
 from keras.applications.inception_resnet_v2 import preprocess_input
 from keras.preprocessing.image import load_img, img_to_array
-import tensorflow as tf
 
 from score_utils import mean_score, std_score
 
