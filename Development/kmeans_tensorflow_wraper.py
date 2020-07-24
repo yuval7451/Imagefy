@@ -14,7 +14,7 @@ labels = TFKMeans.silhouette(2,             6)
 """
 import numpy as np
 import tensorflow as tf
-from development.base_wraper import BaseWraper
+from Development.base_wraper import BaseWraper
 from sklearn.metrics import silhouette_samples, silhouette_score
 
 
