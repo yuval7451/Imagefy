@@ -22,7 +22,7 @@ from keras.preprocessing.image import load_img, img_to_array
 from utils.score_utils import mean_score, std_score
 from utils.common import WEIGHTS_FOLDER_PATH, INCEPTION_RESNET_WEIGHTS, IMAGE_SIZE
 from utils.data_utils import load_data, pipeline_to_tensor
-from Development.base_wraper import BaseWraper
+from development.base_wraper import BaseWraper
 
 class InceptionResnetWraper(BaseWraper):
     """

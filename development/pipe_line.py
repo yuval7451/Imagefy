@@ -6,8 +6,8 @@ import os
 import numpy as np
 import tensorflow as tf
 # import argparse
-from Development.inception_resnet_wraper import InceptionResnetWraper
-from Development.kmeans_tensorflow_wraper import KmeansTensorflowWraper
+from development.inception_resnet_wraper import InceptionResnetWraper
+from development.kmeans_tensorflow_wraper import KmeansTensorflowWraper
 from utils.common import DATA_FOLDER_PATH, GOPRO_IMAGES_FOLDER, TEST_IMAGES_FOLDER
 from utils.data_utils import load_data, pipeline_to_cluster
 
