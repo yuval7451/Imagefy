@@ -23,7 +23,7 @@ parser.add_argument('-dir', type=str, default=None,
 parser.add_argument('-img', type=str, default=[None], nargs='+',
                     help='Pass one or more image paths to evaluate them')
 
-parser.add_argument('-resize', type=str, default='false',
+parser.add_argument('-resize', type=str, default='true',
                     help='Resize images to 224x224 before scoring')
 
 parser.add_argument('-rank', type=str, default='true',

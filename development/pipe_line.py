@@ -1,34 +1,83 @@
 #!/usr/bin/env python3
 # Author: Yuval Kaneti⭐
 #### IMPROTS ####
-##TODO: TEST
 import os
-import numpy as np
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+
+# import numpy as np
 import tensorflow as tf
-# import argparse
+
 from development.inception_resnet_wraper import InceptionResnetWraper
 from development.kmeans_tensorflow_wraper import KmeansTensorflowWraper
 from utils.common import DATA_FOLDER_PATH, GOPRO_IMAGES_FOLDER, TEST_IMAGES_FOLDER
-from utils.data_utils import load_data, pipeline_to_cluster
-
+from utils.data_utils import load_data
+from development.argument_parser import arg_parser, validate_parse
 class Pipeline(object):
     """
     """
-    def __init__(self, dir_path : str, mode : str):
+    def __init__(self, dir_path, mode):
         """
         """
-        self.dir_path = dir_path
-        self.mode = mode
-        self.data = self._load_data()
         self.options = {
-            "ALL" : self._full_pipeline,
-            "NN" : self._nn,
-            "DIR" : self._dir
+            "all" : self._full_pipeline,
+            "inception" : self._inception,
+            "cluster" : self._cluster
         }
-        self.top = 3
-        self._verbose = True
+        
+        args = arg_parser()
+        validate_parse(args)
+        self.dir_path = str(args.dir)
+        self._verbose = bool(args.verbose)
+        self.resize = bool(args.resize)
+        self.gpu = bool(args.gpu)
+        self.mode = str(args.mode)
+        if self.mode != 'inception':
+            self.start_k = int(args.start)
+            self.stop_k = int(args.stop)
+
+    def start(self):
+        self.data = self._load_data()
+        return_val = self.options[self.mode]()
+        print(return_val)
+        return return_val
+    
+    
     def _load_data(self):
         """
         """
-        return load_data(self.dir_path)
+        return load_data(self.dir_path, resize=self.resize)
     
+
+    def _full_pipeline(self):
+        """
+        """
+        regroupd_data = self._cluster() 
+        score_lists = self._inception(regroupd_data=regroupd_data)
+        return score_lists
+    
+
+    def _inception(self, regroupd_data = None):
+        """
+        """
+        if regroupd_data:
+            Inception = InceptionResnetWraper(data=regroupd_data, gpu=self.gpu, verbose=self._verbose)
+        else:
+            Inception = InceptionResnetWraper(data=self.data, gpu=self.gpu, verbose=self._verbose)
+        score_lists = Inception.start()
+        return score_lists
+    
+    def _cluster(self):
+        """
+        """
+        kmeans = KmeansTensorflowWraper(data=self.data, start_k=self.start_k, stop_k=self.stop_k, verbose=self._verbose)
+        regroupd_data = kmeans.start()
+        return regroupd_data
+    
+    
+
+def main():
+    pp = Pipeline("D:\\Datasets\\Imagefy\\test_images", "ALL")
+    pp.start()
+
+if __name__ == '__main__':
+    main()

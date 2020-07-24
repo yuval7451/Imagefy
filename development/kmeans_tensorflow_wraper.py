@@ -14,6 +14,7 @@ labels = TFKMeans.silhouette(2,             6)
 """
 import numpy as np
 import tensorflow as tf
+
 from development.base_wraper import BaseWraper
 from sklearn.metrics import silhouette_samples, silhouette_score
 
@@ -44,8 +45,8 @@ class KmeansTensorflowWraper(BaseWraper):
         return regrouped_data
         
     def _process_input(self):
-            x = [tup[1].flatten() for tup in self._data]
-            y = [tup[0] for tup in self._data]
+            x = np.array([tup[1].flatten() for tup in self._data[0]])
+            y = [tup[0] for tup in self._data[0]]
             return (x, y)
 
     def _validate_input(self):
@@ -80,12 +81,13 @@ class KmeansTensorflowWraper(BaseWraper):
             # Set num_clusters
             self._num_clusters = n_clusters
             cluster_labels = self.train()
-            silhouette_avg = silhouette_score(self.X, cluster_labels)
-            if self._verbose:
-                print("For n_clusters =", n_clusters, "The average silhouette_score is :", silhouette_avg)
-            score_list.append((n_clusters, silhouette_avg, cluster_labels))
+            if len(np.unique(cluster_labels)) > 1:
+                silhouette_avg = silhouette_score(self.X, cluster_labels)
+                if self._verbose:
+                    print("For n_clusters =", n_clusters, "The average silhouette_score is :", silhouette_avg)
+                score_list.append((n_clusters, silhouette_avg, cluster_labels))
 
-            
+                
         score_list = sorted(score_list, key=lambda x: x[1], reverse=True)
         if self._verbose:
             print(20*"-")
@@ -148,19 +150,19 @@ class KmeansTensorflowWraper(BaseWraper):
         # print(list(res))
         return list(res)
         
-def main():
-    TEST = True
-    if TEST:
-        PATH = os.path.join(DATA_FOLDER_PATH, TEST_IMAGES_FOLDER)
-    else:
-        PATH = os.path.join(DATA_FOLDER_PATH, GOPRO_IMAGES_FOLDER)
+# def main():
+#     TEST = True
+#     if TEST:
+#         PATH = os.path.join(DATA_FOLDER_PATH, TEST_IMAGES_FOLDER)
+#     else:
+#         PATH = os.path.join(DATA_FOLDER_PATH, GOPRO_IMAGES_FOLDER)
 
-    data = load_data(PATH,resize=True, size=224)
-    print(data.shape)
+#     data = load_data(PATH,resize=True, size=224)
+#     print(data.shape)
     
-    TFKMeans = KmeansTensorflowWraper(data, 2, 6, True)
-    labels = TFKMeans.start()
-    print(labels)
+#     TFKMeans = KmeansTensorflowWraper(data, 2, 6, True)
+#     labels = TFKMeans.start()
+#     print(labels)
        
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()

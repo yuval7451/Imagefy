@@ -7,4 +7,4 @@
 # [X] Implemnet Kmeans Wraper
 # [] look into converting to TF -> Serving *Keras Model*
 # [] Add Doc to Research.clustering & common
-# [] Make Pipeline
+# [X] Make Pipeline

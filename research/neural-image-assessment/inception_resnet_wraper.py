@@ -21,7 +21,9 @@ from keras.preprocessing.image import load_img, img_to_array
 
 from utils.score_utils import mean_score, std_score
 from utils.common import WEIGHTS_FOLDER_PATH, INCEPTION_RESNET_WEIGHTS, IMAGE_SIZE
-from utils.data_utils import load_data, pipeline_to_tensor
+# from utils.data_utils import load_data
+
+import matplotlib.pyplot as plt
 
 class InceptionResnetWraper(object):
     """
@@ -88,6 +90,8 @@ class InceptionResnetWraper(object):
         with tf.device(self.device):
             score_list = []
             for image_name, tensor in images:
+                # tensor = np.expand_dims(tensor, axis=0)
+                print(tensor.shape)
                 scores = self.model.predict(tensor, batch_size=1, verbose=0)[0]
                 mean = mean_score(scores)
                 std = std_score(scores)
@@ -110,12 +114,30 @@ class InceptionResnetWraper(object):
             print("%d)" % (i + 1), "%s : Score = %0.5f" % (name, score))        
 
 
+def load_data(folder_path , resize=False, size=IMAGE_SIZE):
+    print("Loading images from directory : ", folder_path)
+    images = []
+    for image_name in os.listdir(folder_path):
+        image_path = os.path.join(folder_path, image_name)
+        image = load_img(image_path, target_size=(size, size))
+        image_tensor = img_to_array(image)
+        image_tensor = np.expand_dims(image_tensor, axis=0)
+        image_tensor = preprocess_input(image_tensor)
+        images.append((image_name, image_tensor))
+
+    return images
+
 
 image_dir = "test"
 Inception = InceptionResnetWraper(gpu=True, verbose=True)
 # images = Inception.load_images(image_dir)
 images = load_data(image_dir, resize=True, size=IMAGE_SIZE)
-images = pipeline_to_tensor(images)
+
+# img = np.array(images[0][1])
+# print(img.shape)
+# plt.imshow(img)
+# plt.show()
+# exit()
 scores = Inception.predict(images)
 Inception.rank(scores)
 print(scores)
