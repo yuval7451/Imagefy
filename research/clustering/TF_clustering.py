@@ -7,13 +7,7 @@ import tensorflow as tf
 from utils.common import DATA_FOLDER_PATH, GOPRO_IMAGES_FOLDER, TEST_IMAGES_FOLDER
 from utils.data_utils import load_data
 
-"""
-##  with tf.device(self.device):
-['ALL_DISTANCES', 'CLUSTER_CENTERS_VAR_NAME', 'CLUSTER_INDEX', 'COSINE_DISTANCE', 'KMEANS_PLUS_PLUS_INIT', 'RANDOM_INIT', 'SCORE', 
-'SQUARED_EUCLIDEAN_DISTANCE', 'cluster_centers', 'config', 'eval_dir', 'evaluate', 'experimental_export_all_saved_models', 'export_saved_model',
-'export_savedmodel', 'get_variable_names', 'get_variable_value', 'latest_checkpoint', 'model_dir', 'model_fn', 'params', 'predict', 
-'predict_cluster_index', 'score', 'train', 'transform']
-"""
+
 k_class = 2
 
 def TF_kmeans(data):

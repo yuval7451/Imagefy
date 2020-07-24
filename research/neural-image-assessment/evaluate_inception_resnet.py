@@ -2,8 +2,6 @@
 import os
 import numpy as np
 import argparse
-# from path import Path
-
 import tensorflow as tf
 from keras.models import Model
 from keras.layers import Dense, Dropout
@@ -39,9 +37,6 @@ rank_images = args.rank.lower() in ("true", "yes", "t", "1")
 # give priority to directory
 if args.dir is not None:
     print("Loading images from directory : ", args.dir)
-    # imgs = Path(args.dir).files('*.png')
-    # imgs += Path(args.dir).files('*.jpg')
-    # imgs += Path(args.dir).files('*.jpeg')
     imgs = [os.path.join(args.dir, img_name) for img_name in os.listdir(args.dir)]
 elif args.img[0] is not None:
     print("Loading images from path(s) : ", args.img)
@@ -66,15 +61,10 @@ with tf.device('/GPU:0'):
         img = load_img(img_path, target_size=target_size)
         x = img_to_array(img)
         x = np.expand_dims(x, axis=0)
-
         x = preprocess_input(x)
-
         scores = model.predict(x, batch_size=1, verbose=0)[0]
-
         mean = mean_score(scores)
         std = std_score(scores)
-
-        # file_name = Path(img_path).name.lower()
         score_list.append((img_path, mean))
 
         print("Evaluating : ", img_path)

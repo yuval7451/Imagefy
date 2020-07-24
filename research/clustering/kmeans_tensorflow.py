@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 """
 Code Taken From: https://github.com/tensorflow/tensorflow/issues/20942 @kevintrankt commented on Jul 23, 2018
-Author: Yuval Kaneti⭐
+Author: Yuval Kaneti
 """
 import numpy as np
 import tensorflow as tf
@@ -12,9 +12,12 @@ from utils.data_utils import load_data
 
 class KmeansTensorflow:
     """
+    KmeansTensorflow: A Kmeans TensorFlow Implemention
     """
     def __init__(self, input_matrix, num_clusters):
         """
+        :type input_matrix: C{list} -> The Data (Flattend())
+        :type num_clusters: C{int} -> How many Clusters
         """
         self._input = input_matrix
         self._num_clusters = num_clusters
@@ -22,6 +25,7 @@ class KmeansTensorflow:
 
     def train(self):
         """
+        :Remarks *Train Kmeans
         """
         k = self._num_clusters
         # centroid initialization
@@ -70,7 +74,6 @@ class KmeansTensorflow:
             has_changed, _ = sess.run([is_continue, loop])
         # see how the data is assigned
         res = sess.run(point_to_centroid_assignment)
-        # print(list(res))
         return list(res)
         
 def main():
