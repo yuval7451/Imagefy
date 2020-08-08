@@ -32,29 +32,29 @@ from __future__ import division
 
 import warnings
 
-from keras.models import Model
-from keras.layers import Input
-from keras.layers import Activation
-from keras.layers import Dense
-from keras.layers import Dropout
-from keras.layers import BatchNormalization
-from keras.layers import MaxPooling2D
-from keras.layers import AveragePooling2D
-from keras.layers import GlobalAveragePooling2D
-from keras.layers import GlobalMaxPooling2D
-from keras.layers import Conv2D
-from keras.layers import SeparableConv2D
-from keras.layers import ZeroPadding2D
-from keras.layers import Cropping2D
-from keras.layers import concatenate
-from keras.layers import add
-from keras.regularizers import l2
-from keras.utils.data_utils import get_file
-from keras.engine.topology import get_source_inputs
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input
+from tensorflow.keras.layers import Activation
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dropout
+from tensorflow.keras.layers import BatchNormalization
+from tensorflow.keras.layers import MaxPooling2D
+from tensorflow.keras.layers import AveragePooling2D
+from tensorflow.keras.layers import GlobalAveragePooling2D
+from tensorflow.keras.layers import GlobalMaxPooling2D
+from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import SeparableConv2D
+from tensorflow.keras.layers import ZeroPadding2D
+from tensorflow.keras.layers import Cropping2D
+from tensorflow.keras.layers import concatenate
+from tensorflow.keras.layers import add
+from tensorflow.keras.regularizers import l2
+from tensorflow.keras.utils.data_utils import get_file
+from tensorflow.keras.engine.topology import get_source_inputs
 from keras_applications.imagenet_utils import _obtain_input_shape
 from keras_applications.inception_v3 import preprocess_input
 from keras_applications.imagenet_utils import decode_predictions
-from keras import backend as K
+from tensorflow.keras import backend as K
 
 _BN_DECAY = 0.9997
 _BN_EPSILON = 1e-3
@@ -88,7 +88,7 @@ def NASNet(input_shape=None,
     Note that only TensorFlow is supported for now,
     therefore it only works with the data format
     `image_data_format='channels_last'` in your Keras config
-    at `~/.keras/keras.json`.
+    at `~/.tensorflow.keras/tensorflow.keras.json`.
     # Arguments
         input_shape: optional shape tuple, only to be specified
             if `include_top` is False (otherwise the input shape
@@ -182,7 +182,7 @@ def NASNet(input_shape=None,
                       'However your settings specify the default '
                       'data format "channels_first" (channels, width, height).'
                       ' You should set `image_data_format="channels_last"` '
-                      'in your Keras config located at ~/.keras/keras.json. '
+                      'in your Keras config located at ~/.tensorflow.keras/tensorflow.keras.json. '
                       'The model being returned right now will expect inputs '
                       'to follow the "channels_last" data format.')
         K.set_image_data_format('channels_last')
@@ -332,7 +332,7 @@ def NASNetLarge(input_shape=(331, 331, 3),
     Note that only TensorFlow is supported for now,
     therefore it only works with the data format
     `image_data_format='channels_last'` in your Keras config
-    at `~/.keras/keras.json`.
+    at `~/.tensorflow.keras/tensorflow.keras.json`.
     # Arguments
         input_shape: optional shape tuple, only to be specified
             if `include_top` is False (otherwise the input shape
@@ -409,7 +409,7 @@ def NASNetMobile(input_shape=(224, 224, 3),
     Note that only TensorFlow is supported for now,
     therefore it only works with the data format
     `image_data_format='channels_last'` in your Keras config
-    at `~/.keras/keras.json`.
+    at `~/.tensorflow.keras/tensorflow.keras.json`.
     # Arguments
         input_shape: optional shape tuple, only to be specified
             if `include_top` is False (otherwise the input shape
@@ -486,7 +486,7 @@ def NASNetCIFAR(input_shape=(32, 32, 3),
     Note that only TensorFlow is supported for now,
     therefore it only works with the data format
     `image_data_format='channels_last'` in your Keras config
-    at `~/.keras/keras.json`.
+    at `~/.tensorflow.keras/tensorflow.keras.json`.
     # Arguments
         input_shape: optional shape tuple, only to be specified
             if `include_top` is False (otherwise the input shape
@@ -744,7 +744,7 @@ def _add_auxiliary_head(x, classes, weight_decay):
         classes: number of output classes
         weight_decay: l2 regularization weight
     # Returns
-        a keras Tensor
+        a tensorflow.keras Tensor
     '''
     img_height = 1 if K.image_data_format() == 'channels_last' else 2
     img_width = 2 if K.image_data_format() == 'channels_last' else 3

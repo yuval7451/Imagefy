@@ -14,11 +14,11 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from keras.models import Model
-from keras.layers import Dense, Dropout
-from keras.applications.inception_resnet_v2 import InceptionResNetV2
-from keras.applications.inception_resnet_v2 import preprocess_input
-from keras.preprocessing.image import load_img, img_to_array
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.applications.inception_resnet_v2 import InceptionResNetV2
+from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
 
 from utils.score_utils import mean_score, std_score
 from utils.common import WEIGHTS_FOLDER_PATH, INCEPTION_RESNET_WEIGHTS, IMAGE_SIZE
@@ -52,7 +52,7 @@ class InceptionResnetWraper(BaseWraper):
         """
         :type gpu: C{bool} -> Should Keras Use a GPU or CPU
         :type _verbose: {bool} -> Vebosity
-        :return model: C{keras.models.Model} -> The Loaded Model
+        :return model: C{tensorflow.keras.models.Model} -> The Loaded Model
         """
         if self._gpu:
             self.device = '/GPU:0'            
@@ -67,7 +67,7 @@ class InceptionResnetWraper(BaseWraper):
             x = Dense(10, activation='softmax')(x)
             model = Model(base_model.input, x)
             model.load_weights(self.weights_path)
-            
+            model.save("../models/InceptionResnet.h5")
         return model
  
     def _predict(self):

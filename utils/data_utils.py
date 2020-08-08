@@ -7,8 +7,8 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 from utils.common import IMAGE_SIZE
-from keras.applications.inception_resnet_v2 import preprocess_input
-from keras.preprocessing.image import load_img, img_to_array
+from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
 #### FUNCTIONS ####
 def data_to_np_image(data):
     return [tup[1] for tup in data]
