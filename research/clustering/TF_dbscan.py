@@ -104,3 +104,20 @@ def run(vals, epsilon=4, min_points=4):
     results = results.reshape((-1, 1))
 
     return results
+
+
+from utils.common import DATA_FOLDER_PATH, GOPRO_IMAGES_FOLDER, TEST_IMAGES_FOLDER
+from utils.data_utils import load_data
+import os
+
+
+data = load_data(os.path.join(DATA_FOLDER_PATH, TEST_IMAGES_FOLDER),resize=True)
+
+X = [tensor[1].flatten() for tensor in data[0]]
+Y = [tensor[0] for tensor in data[0]]
+
+res = run(X)
+
+print(res)
+
+

@@ -4,13 +4,6 @@ Code Taken From: https://github.com/tensorflow/tensorflow/issues/20942 @kevintra
 Code Taken from: https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html
 Wiki: Silhouette clustering -> https://en.wikipedia.org/wiki/Silhouette_(clustering)
 Author: Yuval Kaneti⭐
-
-Example Useg:
-PATH = PATH\\TO\\DATA
-data = load_data(PATH,resize=True, size=224)
-TFKMeans = KmeansTensorflowWraper(data)
-#                        min clusters     max clusters - 1
-labels = TFKMeans.silhouette(2,             6)
 """
 import numpy as np
 import tensorflow as tf

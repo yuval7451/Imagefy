@@ -21,15 +21,15 @@ class Pipeline(object):
         self.options = {
             "all" : self._full_pipeline,
             "inception" : self._inception,
-            "cluster" : self._cluster
+            "kmeans" : self._cluster
         }
         
         args = arg_parser()
         validate_parse(args)
         self.dir_path = str(args.dir)
-        self._verbose = bool(args.verbose)
-        self.resize = bool(args.resize)
-        self.gpu = bool(args.gpu)
+        self._verbose = "true" == args.verbose
+        self.resize = "true" == args.resize
+        self.gpu = "true" == args.gpu
         self.mode = str(args.mode)
         if self.mode != 'inception':
             self.start_k = int(args.start)
@@ -38,7 +38,7 @@ class Pipeline(object):
     def start(self):
         self.data = self._load_data()
         return_val = self.options[self.mode]()
-        print(return_val)
+        # print(return_val)
         return return_val
     
     

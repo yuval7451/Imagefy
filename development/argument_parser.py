@@ -6,37 +6,37 @@ import argparse
 def arg_parser():
     parser = argparse.ArgumentParser(
         prog="pipe_line.py",
-        usage="<mode>",
+        usage="mode <all\kmeans\inception> dir<path>",
         description="None"
     )
     parser.add_argument(
         "-d",
         "--dir",
-        required=True,
+        required='true',
         dest="dir"
     )
     parser.add_argument(
         "-m",
         "--mode",
-        required=True,
+        required='true',
         dest="mode"
     )
     parser.add_argument(
         "-r",
         "--resize",
-        default=True,
+        default='true',
         dest="resize"
     )
     parser.add_argument(
         "-v",
         "--verbose",
-        default=True,
+        default='true',
         dest="verbose"
     )
     parser.add_argument(
         "-g",
         "-gpu",
-        default=True,
+        default='true',
         dest="gpu"
     )
     parser.add_argument(
@@ -52,6 +52,6 @@ def arg_parser():
     return args
 
 def validate_parse(args):
-    if args.mode == "all" or args.mode == "cluster":
+    if args.mode == "all" or args.mode == "kmeans":
         assert args.start != None
         assert args.stop != None

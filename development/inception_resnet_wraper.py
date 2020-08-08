@@ -25,7 +25,7 @@ from utils.common import WEIGHTS_FOLDER_PATH, INCEPTION_RESNET_WEIGHTS, IMAGE_SI
 from utils.data_utils import load_data
 from development.base_wraper import BaseWraper
 
-from utils.common import DATA_FOLDER_PATH, GOPRO_IMAGES_FOLDER, TEST_IMAGES_FOLDER
+# from utils.common import DATA_FOLDER_PATH, GOPRO_IMAGES_FOLDER, TEST_IMAGES_FOLDER
 
 class InceptionResnetWraper(BaseWraper):
     """
@@ -91,8 +91,7 @@ class InceptionResnetWraper(BaseWraper):
                 
                 score_list = sorted(score_list, key=lambda x: x[1], reverse=True)  
                    
-                if self._verbose:
-                    self._rank(score_list)
+                self._rank(score_list)
                        
                 score_lists.append(score_list)
         print(len(score_lists))                                   
