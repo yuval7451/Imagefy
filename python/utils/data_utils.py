@@ -6,6 +6,8 @@ import os
 import cv2
 import numpy as np
 from tqdm import tqdm
+import logging
+logging.getLogger().setLevel(logging.INFO)
 from utils.common import IMAGE_SIZE
 from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
@@ -34,7 +36,7 @@ def data_to_np_image(data):
 #     return images    
 
 def load_data(folder_path , resize=False, size=IMAGE_SIZE):
-    print("Loading images from directory : ", folder_path)
+    logging.info(f"Loading images from directory : {folder_path}")
     images = []
     for image_name in os.listdir(folder_path):
         image_path = os.path.join(folder_path, image_name)
@@ -49,5 +51,5 @@ def load_data(folder_path , resize=False, size=IMAGE_SIZE):
 def save_data(folder_path, data):
     """
     """
-    print(f"saving image to {folder_path}")
+    logging.info(f"saving image to {folder_path}")
     cv2.imwrite(folder_path, data)

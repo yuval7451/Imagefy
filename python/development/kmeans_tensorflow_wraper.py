@@ -7,6 +7,8 @@ Author: Yuval Kaneti⭐
 """
 import numpy as np
 import tensorflow as tf
+import logging
+logging.getLogger().setLevel(logging.INFO)
 
 from development.base_wraper import BaseWraper
 from sklearn.metrics import silhouette_samples, silhouette_score
@@ -30,7 +32,7 @@ class KmeansTensorflowWraper(BaseWraper):
     def start(self):
         """
         """
-        print("Starting KmeansTensorflowWraper")
+        logging.info("Starting KmeansTensorflowWraper")
         self._validate_input()
         (self.X, self.Y) = self._process_input()
         cluster_labels = self._silhouette() 
@@ -70,22 +72,22 @@ class KmeansTensorflowWraper(BaseWraper):
         score_list = []
         for n_clusters in range(self._start_k, self._stop_k):
             if self._verbose:
-                print(f"Using: {n_clusters}")
+                logging.info(f"Using: {n_clusters}")
             # Set num_clusters
             self._num_clusters = n_clusters
             cluster_labels = self.train()
             if len(np.unique(cluster_labels)) > 1:
                 silhouette_avg = silhouette_score(self.X, cluster_labels)
                 if self._verbose:
-                    print("For n_clusters =", n_clusters, "The average silhouette_score is :", silhouette_avg)
+                    logging.debug("For n_clusters =", n_clusters, "The average silhouette_score is :", silhouette_avg)
                 score_list.append((n_clusters, silhouette_avg, cluster_labels))
 
                 
         score_list = sorted(score_list, key=lambda x: x[1], reverse=True)
         if self._verbose:
-            print(20*"-")
-            print(f"{score_list[0][0]} clusters had {score_list[0][1]} Which is the best")
-            print(20*"-")
+            logging.debug(20*"-")
+            logging.debug(f"{score_list[0][0]} clusters had {score_list[0][1]} Which is the best")
+            logging.debug(20*"-")
 
         return score_list[0][2]
 

@@ -13,7 +13,8 @@ scores = Inception.predict(data)
 import os
 import numpy as np
 import tensorflow as tf
-
+import logging
+logging.getLogger().setLevel(logging.INFO)
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.applications.inception_resnet_v2 import InceptionResNetV2
@@ -60,14 +61,16 @@ class InceptionResnetWraper(BaseWraper):
             self.device = '/CPU:0'
             
         if self._verbose:
-            print(f"Using {self.device}")
+            logging.debug(f"Using {self.device}")
+            logging.info("Loading Model")
         with tf.device(self.device):
             base_model = InceptionResNetV2(input_shape=(None, None, 3), include_top=False, pooling='avg', weights=None)
-            x = Dropout(0.75)(base_model.output)
-            x = Dense(10, activation='softmax')(x)
+            # x = Dropout(0.75)(base_model.output)
+            # x = Dense(10, activation='softmax')(x)
+            x = Dense(10, activation='softmax')(base_model.output)
             model = Model(base_model.input, x)
             model.load_weights(self.weights_path)
-            model.save("../models/InceptionResnet.h5")
+            # model.save("../models/InceptionResnet.h5")
         return model
  
     def _predict(self):
@@ -85,8 +88,8 @@ class InceptionResnetWraper(BaseWraper):
                     std = std_score(scores)
                     score_list.append((image_path, mean))
                     if self._verbose:
-                        print("Evaluating : ", image_path)
-                        print("NIMA Score : %0.3f +- (%0.3f)" % (mean, std))
+                        logging.debug(f"Evaluating : {image_path}")
+                        logging.debugf"NIMA Score : {mean}, {std}")
                 
                 
                 score_list = sorted(score_list, key=lambda x: x[1], reverse=True)  
@@ -94,28 +97,30 @@ class InceptionResnetWraper(BaseWraper):
                 self._rank(score_list)
                        
                 score_lists.append(score_list)
-        print(len(score_lists))                                   
+        logging.debug(len(score_lists))                                   
         return score_lists
 
     def _rank(self, score_list):
         """
         """
-        print("*" * 40, "Ranking Images", "*" * 40)    
+        rank_msg = "*" * 40, "Ranking Images", "*" * 40
+        logging.info(rank_msg)    
         for i, (name, score) in enumerate(score_list):
-            print("%d)" % (i + 1), "%s : Score = %0.5f" % (name, score))        
+            logging.info(f"{i+1}), {name} = {score}")
+            # %d)" % (i + 1), "%s : Score = %0.5f" % (name, score))        
 
 
-def main():
-    TEST = True
-    if TEST:
-        PATH = os.path.join(DATA_FOLDER_PATH, TEST_IMAGES_FOLDER)
-    else:
-        PATH = os.path.join(DATA_FOLDER_PATH, GOPRO_IMAGES_FOLDER)
+# def main():
+#     TEST = True
+#     if TEST:
+#         PATH = os.path.join(DATA_FOLDER_PATH, TEST_IMAGES_FOLDER)
+#     else:
+#         PATH = os.path.join(DATA_FOLDER_PATH, GOPRO_IMAGES_FOLDER)
 
-    data = load_data(PATH,resize=True)
+#     data = load_data(PATH,resize=True)
 
-    inception = InceptionResnetWraper(data, True, True)
-    print(inception.start())
+#     inception = InceptionResnetWraper(data, True, True)
+#     print(inception.start())
     
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()

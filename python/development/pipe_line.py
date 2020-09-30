@@ -6,7 +6,8 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # import numpy as np
 import tensorflow as tf
-
+import logging
+logging.getLogger().setLevel(logging.INFO)
 from development.inception_resnet_wraper import InceptionResnetWraper
 from development.kmeans_tensorflow_wraper import KmeansTensorflowWraper
 from utils.common import DATA_FOLDER_PATH, GOPRO_IMAGES_FOLDER, TEST_IMAGES_FOLDER
@@ -15,7 +16,7 @@ from development.argument_parser import arg_parser, validate_parse
 class Pipeline(object):
     """
     """
-    def __init__(self, dir_path, mode):
+    def __init__(self):
         """
         """
         self.options = {
@@ -76,7 +77,7 @@ class Pipeline(object):
     
 
 def main():
-    pp = Pipeline("D:\\Datasets\\Imagefy\\test_images", "ALL")
+    pp = Pipeline()
     pp.start()
 
 if __name__ == '__main__':
