@@ -3,6 +3,9 @@
 *.JPG
 *.png
 *.pyc
+*.npy
+logs/*
+logs
 __pycache__/
 TODO.md
 test

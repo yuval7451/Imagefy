@@ -29,10 +29,8 @@ def run(vals, epsilon=4, min_points=4):
         return label*tf.cast(mask, dtype=tf.int64)
 
     data_np = np.array(vals)
-
     eps = epsilon
     min_pts = min_points
-
     in_set = tf.placeholder(tf.float64)
 
     # distance matrix
@@ -96,9 +94,7 @@ def run(vals, epsilon=4, min_points=4):
     )
 
     final_labels = tf.reduce_max(final_labels, axis=0)
-
     with tf.Session() as sess:
-
         results = (sess.run(final_labels, feed_dict={in_set:data_np})).reshape((1, -1))
 
     results = results.reshape((-1, 1))
@@ -111,13 +107,13 @@ from utils.data_utils import load_data
 import os
 
 
-data = load_data(os.path.join(DATA_FOLDER_PATH, TEST_IMAGES_FOLDER),resize=True)
+# data = load_data(os.path.join(DATA_FOLDER_PATH, TEST_IMAGES_FOLDER),resize=True)
 
-X = [tensor[1].flatten() for tensor in data[0]]
-Y = [tensor[0] for tensor in data[0]]
+# X = [tensor[1].flatten() for tensor in data[0]]
+# Y = [tensor[0] for tensor in data[0]]
 
-res = run(X)
+# res = run(X)
 
-print(res)
+# print(res)
 
 
