@@ -3,7 +3,7 @@
 
 #### Imports ####
 import logging
-import asyncio
+# import asyncio
 from integration.argument_parser import arg_parser
 from integration.intergration_suit import IntergrationSuit
 from integration.testing_suit import TesingSuit
