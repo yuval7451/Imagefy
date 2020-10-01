@@ -6,15 +6,10 @@ Author: Yuval Kaneti⭐
 from abc import ABC, abstractmethod
 
 class BaseWraper(ABC):
-    """
-    """
-    @abstractmethod
+    """BaseWraper -> An Abstract Class for TensorflowWrapers."""
     def __init__(self):
         pass
     
     @abstractmethod
     def run(self):
-        pass
-      
-    def __str__(self):
         pass

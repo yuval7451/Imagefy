@@ -16,10 +16,12 @@ from sklearn.metrics import silhouette_samples, silhouette_score
 from integration.data_utils import BaseScore
 
 class KmeansTensorflowWraper(BaseWraper):
-    """
-    """
-    def __init__(self, data, start_k, stop_k):
+    """KmeansTensorflowWraper -> An implemntion of Kmeans & silhouette_score in Tensorflow."""
+    def __init__(self, data : np.ndarray, start_k : int, stop_k : int):
         """
+        @param data: C{np.ndarray} -> a list of Image Objects.
+        @param start_k: C{int} -> the minimum number of Cluster to try kmeans with
+        @param stop_k: C{int} -> the maximum number of Cluster to try kmeans with
         """
         super().__init__()
         self._data = data
@@ -28,6 +30,8 @@ class KmeansTensorflowWraper(BaseWraper):
         
     def run(self):
         """
+        @remarks *This is where the action starts.
+                 *Will run kmeans (stop_k - start_k) times and Compare the results with SilhouetteScore.
         """
         logging.info("Starting KmeansTensorflowWraper")
         self._validate_input()
@@ -36,12 +40,18 @@ class KmeansTensorflowWraper(BaseWraper):
         return _silhouette_score
 
     def _process_input(self):
-            x = np.asarray([ImageObj.data for ImageObj in self._data])
-            y = [ImageObj.src_path for ImageObj in self._data]
-            return (x, y)
+        """
+        @return C{tuple} -> A Tuple Containing X,y.
+        @remarks *An Halper function to Convert From Image to X(np.ndarray) & y(list).
+                 *Should be implemented in the Image object or BaseWraper.
+        """
+        x = np.asarray([ImageObj.data for ImageObj in self._data])
+        y = [ImageObj.src_path for ImageObj in self._data]
+        return (x, y)
 
     def _validate_input(self):
         """
+        @remarks *Will just validate That the params are chill..
         """
         logging.debug("Validating Input for KmeansTensorflowWraper")
         assert self._start_k <= self._stop_k 
@@ -49,6 +59,10 @@ class KmeansTensorflowWraper(BaseWraper):
        
     def _silhouette(self):
         """
+        @return C{SilhouetteScore} -> A BaseScore object for TensorflowBaseWrapers.
+        @remarks *will go over each number of clusters specified by start_k -> stop_k.
+                 *will Run kmeans against it & Calculate the silhouette_score.
+                 *It will compare them and take the one it the highest Score.
         """
         score_list = []
         for n_clusters in range(self._start_k, self._stop_k):
@@ -69,6 +83,10 @@ class KmeansTensorflowWraper(BaseWraper):
 
     def train(self):
         """
+        @remarks *I DONT UNDERSTAND ANYTHING HERE.
+                 *See [https://stackoverflow.com/questions/33621643/how-would-i-implement-k-means-with-tensorflow],
+                      [https://www.altoros.com/blog/using-k-means-clustering-in-tensorflow/],
+                      For Details.   
         """
         assert self._num_clusters != None
         # centroid initialization
@@ -122,8 +140,7 @@ class KmeansTensorflowWraper(BaseWraper):
         return list(res)
 
 class SilhouetteScore(BaseScore):
-    """
-    """
+    """SilhouetteScore -> A BaseScore Object for KemansTensorflowWraper with Silhouette Score."""
     def __init__(self, n_clusters, cluster_labels, silhouette_avg):
         super().__init__(n_clusters, cluster_labels)
         self.silhouette_avg = silhouette_avg

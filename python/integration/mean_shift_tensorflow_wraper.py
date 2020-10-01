@@ -12,9 +12,13 @@ from integration.data_utils import BaseScore
 
 
 class MeanShiftTensorflowWraper:
-    """
-    """
-    def __init__(self, data, radius=None, chunk_size=None):
+    """MeanShiftTensorflowWraper -> An implemntion of mean-shift in Tensorflow."""
+    def __init__(self, data : np.ndarray, radius : int=None, chunk_size : int=None):
+        """
+        @param data: C{np.ndarray} -> a List of Image Objects
+        @param radius: C{int} -> the radius for Clustering.
+        @param chunk_size: C{int} -> How many points to look at, at the same time.
+        """
         logging.debug("Initializing MeanShiftTensorflowWraper")
         self._data = data
         (self.X, self.Y) = self._process_input()
@@ -39,15 +43,21 @@ class MeanShiftTensorflowWraper:
         self.sess = tf.Session(config=config)
     
     def run(self):
+        """
+        @return C{DBScanScore} -> A BaseScore Object returned By TensorflowBaseWraper's.
+        @remarks *will run self.apply with the data.
+        """
         logging.info("Applying Mean-Shift")
         # Now apply 
         peaks, labels = self.apply(self.X, self.radius, self.chunk_size)
-        # print(peaks)
         logging.info("Finished Applying Mean-Shift")
         return DBScanScore(cluster_labels=labels)
 
     def _process_input(self):
         """
+        @return C{tuple} -> A Tuple Containing X,y.
+        @remarks *An Halper function to Convert From Image to X(np.ndarray) & y(list).
+                 *Should be implemented in the Image object or BaseWraper.
         """
         x = np.asarray([ImageObj.data for ImageObj in self._data])
         y = [ImageObj.src_path for ImageObj in self._data]
@@ -57,6 +67,9 @@ class MeanShiftTensorflowWraper:
         return max_shift_t > 0.1
     
     def mean_shift_step_t(self, data_t, max_shift_t, is_near_path_t):
+        """
+        @remarks *Some stuff I Dont Understand.
+        """
         data1_t = tf.expand_dims(data_t, 2) # shape [m, d, 1]
         data2_t = tf.transpose(tf.expand_dims(self.orig_data_all_t, 2), [2, 1, 0]) # shape [1, d, n]
         
@@ -76,6 +89,10 @@ class MeanShiftTensorflowWraper:
         return shifted_data_t, max_shift_t, is_near_path_new_t
     
     def apply(self, data, radius, chunk_size):
+        """
+        @return C{tuple} -> The Peaks(np.ndarray) & Labels(np.ndarray)
+        @remarks *Applying Mean-Shift To the Data.
+        """
         labels = np.full(len(data), fill_value=-1, dtype=int)
         peaks = np.empty_like(data)
         thres_sq = (radius/2) ** 2
@@ -118,8 +135,7 @@ class MeanShiftTensorflowWraper:
         return peaks[:n_peaks], labels
         
 class DBScanScore(BaseScore):
-    """
-    """
+    """ DBScanScore -> A BaseScore Object for MeanShiftTensorflowWraper."""
     def __init__(self, cluster_labels):
         n_clusters = max(cluster_labels) + 1
         super().__init__(n_clusters, cluster_labels)

@@ -1,27 +1,32 @@
-"""
-"""
+#!/usr/bin/env python3
+# Author: Yuval Kaneti⭐
 
+#### Imports ####
 import time
 import logging
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from integration.common import VISUALIZATION_VECTOR_SIZE
+from integration.common import VISUALIZATION_VECTOR_SIZE, COLORS
 
 class ComputePCA():
-    """
-    """
-    def __init__(self, data, dim):
+    """ComputePCA -> An implemntion of PCA in Tensorflow."""
+    def __init__(self, data : np.ndarray, dim : int):
         """
+        @param data: C{np.ndarray} -> An np.ndarray of (Image.data).
+        @param dim: C{int} -> the end Dimention of the output (2D, 3D,...).
+        @remarks *Might take alot of time, depends on the amount of data and its size.
         """       
         self.data = np.array(data, dtype=np.uint8)
         self.dim = dim
         logging.debug("initialzing ComputePCA")
 
-
     def run(self):
         """
+        @return C{np.ndarray} -> the data in the output dim
+        @remarks *Will compute PCA with self.data & self.dim.
+                 *migh run into a MemoryError or ResourceExhausted Cuda Error if not enough VRAM is Avilable.
         """
         logging.info("Computing PCA, might take a while")
         Xn, means = self.normalize(self.data)
@@ -44,23 +49,32 @@ class ComputePCA():
         logging.info("Finished Computing PCA")
         return R
     
-    def normalize(self, X):
+    def normalize(self, X: np.ndarray):
         """
+        @param X: C{np.ndarray} -> the input data
+        @return C{tuple} -> The Normalized data
         """
         means = np.mean(X, axis=0)
         tmp = np.subtract(X, means)
         return tmp, means
 
-    def denormalize(self, Rn, means):
+    def denormalize(self, Rn : np.ndarray, means : np.ndarray):
         """
+        @param Rn: C{np.ndarray} -> the Normalized data
+        @param means: C{np.ndarray} -> the mean of the data
+        @return C{tuple} -> The Denormalized data
         """
         return np.add(Rn, means)
 
 class Visualize3D():
-    """
-    """
-    def __init__(self, data, labels=None, save=True, clustering="kmeans"):
+    """Visualize3D -> Scatter's Data on a 3D plot."""
+    def __init__(self, data : np.ndarray, labels : list=None, save : bool=True, clustering : str="kmeans"):
         """
+        @param data: C{np.ndarray} -> A np.array of [x, y ,z], uasally ComputePCA output.
+        @param labels: C{list} -> [Optional], labels(aka Clusters) from Some kind of @TensorflowBaseWraper
+        @param save: C{bool} -> [Optional], Should we save the data & Labels to npy files, Could be loaded and visualized Again.
+        @param clustering: C{str} -> [Optional], Currnetly only used for filenameing, might be used for logging or smth.
+        @remarks *self._save() is being called on inilization.
         """
         self.data = data
         self.labels = labels
@@ -70,6 +84,10 @@ class Visualize3D():
         self._save()
 
     def _save(self):
+        """
+        @remarks: *Save self.data & self.labels to .npy Files for future use.
+                  *Can be loaded via @IntergrationSuit.visualize_from_file() OR @self.load() -> Should not be USED!
+        """
         if self.labels is not None and self.data is not None and self.save:        
             filenameX = f"X_PCA_{len(self.data)}_{self.clustering}_3D.npy"
             filenameY = f"Y_PCA_{len(self.labels)}_{self.clustering}_3D.npy"
@@ -78,7 +96,11 @@ class Visualize3D():
             logging.info(f"Saving PCA Y Data to: {filenameY}")
             np.save(filenameY, self.labels)
 
-    def load(self, filename):
+    def load(self, filename : str):
+        """
+        @param filename: The base Filename (aka PCA_80_kmeans_3D.npy)
+        @remarks *it will look for X_filename & Y_filename, (DON'T Specify 'X_' or 'Y_')!
+        """
         logging.info(f"Loading X_{filename} & Y_{filename}")
         self.data = np.load(f"X_{filename}")
         self.labels = np.load(f"Y_{filename}")
@@ -86,23 +108,21 @@ class Visualize3D():
 
     def show(self):
         """
+        @remarks *Will Scatter self.data on a 3D plot.
+                 *if labels were supplied the will be attched to the legend.
+                 *There Are About ~900 Dont have More then ~900 Clusters..
+                 *Colors defiition is in @common.COLORS.
+                 *Might take some time if there are alot of data points.
         """
         logging.info("Plotting Data, might take a while..")
-        # color = ['C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9']
-        color = ['#EF6461', '#313638', '#E0DFD5', '#E4B363', '#A8B4A5', '#725D68', '#9D6A89', '#EE92C2', 
-                 '#EFBC9B', '#492C1D', '#5B5750', '#6B7F82', '#8EB8E5', '#F9B4ED', '#E574BC','#C52184',
-                  '#1E2D24', '#334139', '#F22B29', '#140F2D', '#F49D37', '#3F88C5', '#D72638', '#81D2C7',
-                  '#AFECE7', '#8D99AE', '#8D99AE', '#2B2D42', '#F22B29']
-
         fig = plt.figure(figsize=(17,17))
         ax = fig.add_subplot(111, projection='3d')
-        # print(self.labels)
-        if len(self.labels) <= len(color):
+        if len(self.labels) <= len(COLORS):
             raise RuntimeWarning(f"there are not enough colors for all the labels, {len(self.labels)}.\nAdd Colors from https://coolors.co/")
 
-        if self.labels is not None and len(self.labels) <= len(color):
+        if self.labels is not None:
             for index, arr in enumerate(self.data):
-                ax.scatter(arr[0], arr[1], arr[2], c=color[self.labels[index]], label=f"cluster_{self.labels[index]}")
+                ax.scatter(arr[0], arr[1], arr[2], c=COLORS[self.labels[index]], label=f"cluster_{self.labels[index]}")
         else:
             for index, arr in enumerate(self.data):
                 ax.scatter(arr[0], arr[1], arr[2])
@@ -117,9 +137,12 @@ class Visualize3D():
         plt.show()
         logging.info("Visualize3D Finished")
 
-
-def to_visualization_format(data):
+def to_visualization_format(data : np.ndarray):
     """
+    @param data: C{np.ndarray} -> an array on Image Objects.
+    @remarks *Will Split an Image object into Image.data & image.cluster_n (aka X, y).
+             *Make sure you call @IOWraper.marge_data() befor Visualizing.
+             *RuntimeWarning will be raised if there are missing values.
     """
     logging.debug("Transforming data to visualization format")
     x = [np.resize(image.data, VISUALIZATION_VECTOR_SIZE ** 2) for image in data]

@@ -11,4 +11,5 @@ IMAGE_TYPES = ['jpg', 'png', 'jpeg']
 MAX_WORKERS = 50
 OUTPUT_DIR_PATH = "D:\\Imagefy\\output"
 VISUALIZATION_DIM = 3
-VISUALIZATION_VECTOR_SIZE = 64 
+VISUALIZATION_VECTOR_SIZE = 64
+COLORS = ['r', 'c', 'm', 'g', 'k'] * 100

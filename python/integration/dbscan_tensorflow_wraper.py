@@ -9,21 +9,27 @@ import tensorflow as tf; tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging
 from integration.base_wraper import BaseWraper
 from integration.data_utils import BaseScore
 
-
 class DbscanTensorflowWraper(BaseWraper):
-    """
-    """
-    def __init__(self, data, epsilon=4, min_points=4):
+    """DbscanTensorflowWraper -> An implemention of DBSCAN using Tensorflow API."""
+    def __init__(self, data : np.ndarray, epsilon: int=4, min_points : int=4):
         """
+        @param data: C{np.ndarray} -> The Flattened Data. Loaded Via DataLoaderWraper.
+        @param epsilon: C{int} -> Some parameter it needs, Read: [https://en.wikipedia.org/wiki/DBSCAN].
+        @param min_points: C{int} -> The Min number of point in each Cluster.
+        @remarks *DOES NOT WORK WITH TENSORFLOW 1.5.
         """
+        raise NotImplementedError("DOES NOT WORK WITH TENSORFLOW 1.5 Yet..")
         self._data = data
         (self.X, self.Y) = self._process_input()
-        print(self.X.shape)
+        logging.debug(f"Data Shape: {self.X.shape}")
         self._eps = epsilon
         self._min_pts = min_points
 
     def _process_input(self):
         """
+        @return C{tuple} -> A Tuple Containing X,y.
+        @remarks *An Halper function to Convert From Image to X(np.ndarray) & y(list).
+                 *Should be implemented in the Image object.
         """
         x = np.asarray([ImageObj.data for ImageObj in self._data])
         y = [ImageObj.src_path for ImageObj in self._data]
@@ -31,6 +37,9 @@ class DbscanTensorflowWraper(BaseWraper):
 
     def run(self):
         """
+        @return No Idea??
+        @remarks *This is were the Actions Starts.
+                 *See [https://stackoverflow.com/questions/49934606/how-to-implement-dbscan-clustering-in-tensorflow]
         """
         def merge_core_points_into_clusters(elems):
             """
@@ -132,5 +141,4 @@ class DbscanTensorflowWraper(BaseWraper):
         results = results.reshape((-1, 1))
 
         return results
-
 
