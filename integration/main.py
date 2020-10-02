@@ -3,13 +3,14 @@
 
 #### Imports ####
 import logging
-# import asyncio
-from integration.argument_parser import arg_parser
-from integration.intergration_suit import IntergrationSuit
-from integration.testing_suit import TesingSuit
+import asyncio
+import numpy as np
+from integration.utils.argument_parser import arg_parser
+from integration.suits.intergration_suit import IntergrationSuit
 
 #### Functions ####
-def main():
+async def main():
+    logging.debug("Starting Main")
     args = arg_parser()
     dir_path = str(args.dir)
     image_size = int(args.size)
@@ -22,14 +23,8 @@ def main():
     else: logging.getLogger().setLevel(logging.INFO)
    
     suit = IntergrationSuit(dir_path=dir_path, start_k=start_k, stop_k=stop_k, image_size=image_size)
-    suit.run()
-    suit.visualize()
-    # suit.visualize_from_file("PCA_80_3D.npy")
-
-    # logging.info("Running Testing Suite")
-    # suit = TesingSuit(dir_path=dir_path, start_k=start_k, stop_k=stop_k, image_size=image_size)
-    # suit.run()
-    # suit.visualize()
+    await suit.run()
+    suit.tensorboard()
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
