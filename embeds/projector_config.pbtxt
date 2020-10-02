@@ -1,4 +1,0 @@
-embeddings {
-  tensor_name: "Test_Input:0"
-  metadata_path: "C:\\yuval\\computer\\Projects\\Imagefy\\embeds\\Test_Input-metadata.tsv"
-}

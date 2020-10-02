@@ -8,10 +8,10 @@ import logging
 import numpy as np
 import tensorflow as tf; tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 from integration.wrapers.base_wraper import BaseWraper
-from integration.utils.data_utils import BaseScore
+from integration.utils.data_utils import WraperOutput
 
 
-class MeanShiftTensorflowWraper:
+class MeanShiftTensorflowWraper(BaseWraper):
     """MeanShiftTensorflowWraper -> An implemntion of mean-shift in Tensorflow."""
     def __init__(self, data : np.ndarray, radius : int=None, chunk_size : int=None):
         """
@@ -19,9 +19,10 @@ class MeanShiftTensorflowWraper:
         @param radius: C{int} -> the radius for Clustering.
         @param chunk_size: C{int} -> How many points to look at, at the same time.
         """
-        logging.debug("Initializing MeanShiftTensorflowWraper")
+        raise NotImplementedError(f"Mean Shit is Curently not Suported.")
         self._data = data
-        (self.X, self.Y) = self._process_input()
+        (self.X, self.y) = self.Wraperize()
+
         self.radius = radius
         self.chunk_size= chunk_size
 
@@ -44,10 +45,9 @@ class MeanShiftTensorflowWraper:
     
     def run(self):
         """
-        @return C{DBScanScore} -> A BaseScore Object returned By TensorflowBaseWraper's.
+        @return C{DBScanScore} -> A WraperOutput Object returned By TensorflowBaseWraper's.
         @remarks *will run self.apply with the data.
         """
-        logging.info("Applying Mean-Shift")
         # Now apply 
         peaks, labels = self.apply(self.X, self.radius, self.chunk_size)
         logging.info("Finished Applying Mean-Shift")
@@ -134,8 +134,8 @@ class MeanShiftTensorflowWraper:
 
         return peaks[:n_peaks], labels
         
-class DBScanScore(BaseScore):
-    """ DBScanScore -> A BaseScore Object for MeanShiftTensorflowWraper."""
+class DBScanScore(WraperOutput):
+    """ DBScanScore -> A WraperOutput Object for MeanShiftTensorflowWraper."""
     def __init__(self, cluster_labels):
         n_clusters = max(cluster_labels) + 1
         super().__init__(n_clusters, cluster_labels)

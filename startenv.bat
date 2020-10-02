@@ -1,3 +1,3 @@
 @echo off
 echo "Starting Virtual Env"
-imagefy\Scripts\activate
+imagefyenv\Scripts\activate

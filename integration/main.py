@@ -3,28 +3,20 @@
 
 #### Imports ####
 import logging
-import asyncio
 import numpy as np
 from integration.utils.argument_parser import arg_parser
 from integration.suits.intergration_suit import IntergrationSuit
-
+from integration.utils.enum import Enum
 #### Functions ####
-async def main():
-    logging.debug("Starting Main")
+def main():
+    logging.info("Starting Main")
     args = arg_parser()
-    dir_path = str(args.dir)
-    image_size = int(args.size)
-    verbose = False
-    start_k = int(args.start) if args.start else None
-    stop_k = int(args.stop) if args.stop else None
+    # print(args)
 
-    # Debug
-    if verbose: logging.getLogger().setLevel(logging.DEBUG) 
-    else: logging.getLogger().setLevel(logging.INFO)
    
-    suit = IntergrationSuit(dir_path=dir_path, start_k=start_k, stop_k=stop_k, image_size=image_size)
-    await suit.run()
-    suit.tensorboard()
+    suit = IntergrationSuit(**vars(args))
+    suit.run()
+    # suit.tensorboard()
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()

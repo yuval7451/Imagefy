@@ -7,7 +7,7 @@ import logging
 import numpy as np
 import tensorflow as tf; tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 from integration.wrapers.base_wraper import BaseWraper
-from integration.utils.data_utils import BaseScore
+from integration.utils.data_utils import WraperOutput
 
 class DbscanTensorflowWraper(BaseWraper):
     """DbscanTensorflowWraper -> An implemention of DBSCAN using Tensorflow API."""
@@ -20,20 +20,12 @@ class DbscanTensorflowWraper(BaseWraper):
         """
         raise NotImplementedError("DOES NOT WORK WITH TENSORFLOW 1.5 Yet..")
         self._data = data
-        (self.X, self.Y) = self._process_input()
+        (self.X, self.y) = self.Wraperize()
         logging.debug(f"Data Shape: {self.X.shape}")
         self._eps = epsilon
         self._min_pts = min_points
 
-    def _process_input(self):
-        """
-        @return C{tuple} -> A Tuple Containing X,y.
-        @remarks *An Halper function to Convert From Image to X(np.ndarray) & y(list).
-                 *Should be implemented in the Image object.
-        """
-        x = np.asarray([ImageObj.data for ImageObj in self._data])
-        y = [ImageObj.src_path for ImageObj in self._data]
-        return (x, y)
+
 
     def run(self):
         """

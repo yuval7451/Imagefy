@@ -3,48 +3,46 @@
 
 #### Imports ####
 import logging
-from integration.wrapers.kmeans_tensorflow_wraper import KmeansTensorflowWraper
-from integration.utils.data_utils import DataLoaderWraper, IOWraper, DataLoader, TensorboardWraper
-from integration.utils.common import OUTPUT_DIR_PATH, VISUALIZATION_DIM
+# from integration.wrapers.kmeans_tensorflow_wraper import KmeansTensorflowWraper
+# from integration.wrapers.mini_batch_kmeans_tensorflow_wraper import MiniBatchKmeansTensorflowWraper
+from integration.suits.base_suit import BaseSuit
+from integration.utils.data_utils import DataLoaderWraper, IOWraper, TensorboardWraper
+from integration.utils.common import DIR_DEST, IMAGE_SIZE, OUTPUT_DIR_PATH, TENSORBOARD_DEST, DATA_PARAM, VERBOSE_DEST, WRAPER_PARAM, TENSORBOARD_NAME_DEST, SIZE_DEST
 
-class IntergrationSuit:
+class IntergrationSuit(BaseSuit):
     """IntergrationSuit -> Some Kind of Class that controls everything."""
-    def __init__(self, dir_path : str, start_k: int, stop_k: int, image_size: int):
+    def __init__(self, **kwargs):
         """
-        @param dir_path: C{str} -> The base dir path
-        @param start_k: C{int} -> used for KmeansTensorflowWraper.
-        @param stop_k: C{int} -> used for KmeansTensorflowWraper.
-        @param image_size: C{int} -> the image size the images will be resized to. (DataLoaderWraper)
-        @rermarks *Other the dir_path & image_size all should pass ar *args & **kwargs
-                  *BaseSuit ?
         """
-        logging.debug("Initializing IntergrationSuit")
+        super().__init__(**kwargs)
         # Asign Parameters
-        self._dir_path = dir_path
-        self._start_k = start_k
-        self.stop_k = stop_k
-        self.image_size = image_size
-        self.data = None
-        self.score = None
+        self.kwargs = kwargs
+        self.verbose = self.kwargs[VERBOSE_DEST]
+        logging.getLogger().setLevel(logging.DEBUG if self.verbose else logging.INFO)
+        self.WraperOutput = None
         self.IOHandler = None
+        self.tensoboard = self.kwargs[TENSORBOARD_DEST]
+        self.tensorboard_name = self.kwargs[TENSORBOARD_NAME_DEST]
+        logging.debug(str(self.kwargs)  )
 
-    async def run(self):
+    def run(self):
         """
         The `main` Function of each Suit, usually calls The @BaseWraper & @IOWraper
         """
-        logging.info("Starting @IntergrationSuit.run()")
         # Load Data
-        self.data = DataLoaderWraper(self._dir_path, self.image_size).run()
-        # self.data = await DataLoader(self._dir_path, self.image_size).run()
-        # Initialize Kmeans and run it
-        cluster = KmeansTensorflowWraper(self.data, self._start_k, self.stop_k)
-        self.score = cluster.run()
-        # # Handle IO And File Transfering
-        self.IOHandler = IOWraper(data=self.data, score=self.score)
+        self.data = DataLoaderWraper(self.kwargs[DIR_DEST], self.kwargs[SIZE_DEST]).run()
+        self.kwargs.update({DATA_PARAM: self.data})
+        self._wraper = self._wrapers[self.kwargs[WRAPER_PARAM]](**self.kwargs)
+        self.WraperOutput = self._wraper.run()
+        
+        # Handle IO And File Transfering
+        self.IOHandler = IOWraper(data=self.data, wraper_output=self.WraperOutput, model_name=self._wraper.model_name)
         self.IOHandler.create_output_dirs()
         self.IOHandler.merge_data()
         self.IOHandler.move_data()
         logging.info(f"Check {OUTPUT_DIR_PATH} for output")
+        if self.tensoboard:
+            self.tensorboard()
 
     def tensorboard(self, filename : str=None):
         """
