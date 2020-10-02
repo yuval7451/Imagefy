@@ -36,6 +36,7 @@ class Image():
         """
         logging.debug(f"Freeing {sys.getsizeof(self.data)} bytes from {self.basename}")
         del self.data
+        self.data = None
 
     def flush(self):
         """
@@ -237,7 +238,7 @@ class IOWraper():
         for (image, cluster_label) in zip(self.data, self.wraper_output.cluster_labels):
             image.dst_dir = os.path.join(OUTPUT_DIR_PATH, self.model_name, CLUSTER_NAME_FORMAT.format(cluster_label))
             image.cluster_n = int(cluster_label)
-            image.free()
+            # image.free() -> Only free if You dont want to use Tensorboard.
             image.flush()
 
     def create_output_dirs(self):
@@ -294,10 +295,10 @@ class TensorboardWraper():
         if X is not None and y is not None:
             self.X = X
             self.y = y
-        elif self.data is not None:
+        elif self.data is not None and self.data.data is not None:
             self._image_to_nd()
         else:
-            logging.warn("Please Make sure to use TensorboardWraper.load(), Data is currently None")
+            logging.warn("Please Make sure to use TensorboardWraper.load() OR you called Image.free(), Data is <None>")
 
     def save(self):
         """
@@ -324,7 +325,7 @@ class TensorboardWraper():
 
     def _image_to_nd(self):
         """
-        @param data: C{np.ndarray} -> an array on Image Objects.
+        @param data: C{list} -> a list on Image Objects.
         @remarks *Will Split an Image object into Image.data & image.cluster_n (aka X, y).
                 *Make sure you call @IOWraper.marge_data() befor Visualizing.
                 *RuntimeWarning will be raised if there are missing values.
@@ -341,11 +342,15 @@ class TensorboardWraper():
         @param name: C{str} -> The Tensor name, doesnt really have a meaning in this context.
         @remarks *Might launch a subprocess that will run Tensorboard & open Chrome in the futre
         """
-        logging.info("Creating Tensorboard metadata")
-        images_features_labels = {}
-        images_features_labels[name] = [None, self.X, self.y]
-        logging.info("Saving Embeddings")
-        log_name = f"{name}-{time.time()}"
-        save_embeddings(images_features_labels, os.path.join(os.getcwd(),TENSORBOARD_LOG_DIR, log_name))
-        logging.info(f"Run tensorboard --logdir={TENSORBOARD_LOG_DIR + '/' + log_name}")
-        logging.info("Go to http://localhost:6006/ and click Projector")
+        if self.X is not None and self.y is not None:
+            logging.info("Creating Tensorboard metadata")
+            images_features_labels = {}
+            images_features_labels[name] = [None, self.X, self.y]
+            logging.info("Saving Embeddings")
+            log_name = f"{name}-{time.time()}"
+            save_embeddings(images_features_labels, os.path.join(os.getcwd(),TENSORBOARD_LOG_DIR, log_name))
+            logging.info(f"Run tensorboard --logdir={TENSORBOARD_LOG_DIR + '/' + log_name}")
+            logging.info("Go to http://localhost:6006/ and click Projector")
+        else:
+            logging.warn("Please Make sure to use TensorboardWraper.load() OR you called Image.free(), Data is <None>")
+
