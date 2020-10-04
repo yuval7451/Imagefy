@@ -2,10 +2,10 @@
 # Author: Yuval Kaneti⭐
 
 #### Imports ####
-import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import os
 import logging
 import numpy as np
-import tensorflow as tf; tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+import tensorflow as tf
 from integration.wrapers.base_wraper import BaseWraper
 from integration.utils.data_utils import WraperOutput
 
@@ -127,7 +127,7 @@ class DbscanTensorflowWraper(BaseWraper):
 
         final_labels = tf.reduce_max(final_labels, axis=0)
 
-        with tf.Session() as sess:
+        with tf.compat.v1.Session() as sess:
             results = (sess.run(final_labels, feed_dict={in_set:self.X})).reshape((1, -1))
 
         results = results.reshape((-1, 1))

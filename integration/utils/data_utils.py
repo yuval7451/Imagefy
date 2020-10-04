@@ -1,34 +1,39 @@
 #! /usr/bin/env python3
 #Author: Yuval Kaneti⭐
 
-import os
+import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import cv2
 import sys
 import time
+import glob
 import shutil
 import logging
 import numpy as np
 from tqdm import tqdm
+import tensorflow as tf
 import concurrent.futures
-from abc import ABC
-from integration.utils.common import IMAGE_TYPES, MAX_WORKERS, OUTPUT_DIR_PATH, TENSORBOARD_LOG_DIR, CLUSTER_NAME_FORMAT
-from integration.utils.tensorboard_utils import save_embeddings
+from abc import ABC, abstractmethod
+from integration.utils.common import IMAGE_TYPES, MAX_WORKERS, OUTPUT_DIR_PATH, CLUSTER_NAME_FORMAT
 
 class Image():
     """Image -> A Class That holds information about an Image."""
-    def __init__(self, src_path : str, data : list):
+    def __init__(self, src_path : str, data : list, hollow : bool=False):
         """
         @param src_path: C{str} -> The src path of the image
         @param data: C{list} -> A np.array.flatten() containing the image data
         """
         self.src_path = src_path
-        self.data = data
-        self.shape = self.data.shape
         self.basename = os.path.basename(src_path)
         self.dst_dir = None
         self.dst_path = None
         self.cluster_n = None
-        
+        self.hollow = hollow
+        self.data = data
+        if not hollow:
+            self.shape = self.data.shape
+        else:
+            self.shape = (None,)
+  
     def free(self):
         """
         @remarks *Deletes the image data from memory.
@@ -62,24 +67,40 @@ class WraperOutput(ABC):
         self.n_clusters = n_clusters
         self.cluster_labels = cluster_labels
 
-class DataLoaderWraper():
-    """DataLoaderWraper -> a Threaded IO & Numpy Opertions Wraper."""
-    def __init__(self, dir_path : str, image_size: int):
-        """
-        @dir_path: C{str} -> The dir to load the pictures from.
-        @image_size: C{int} -> The size the images should be resized to befor flattening them [size, size, 3] -> [size * size * 3]
-        """
-        """
-        def generator_input_fn(self):
-            self._data = next(self._data_generator.run_batch())
-            (self.X, self.y) = self.Wraperize()
-            return tf.compat.v1.train.limit_epochs(
-            tf.convert_to_tensor(self.X, dtype=tf.float32), num_epochs=1)
-        """
-        logging.debug("Initializing DataLoader")
+class BaseLoader(ABC):
+    def __init__(self, dir_path : str, image_size: int, **kwrags):
         self.dir_path = dir_path
         self.image_size = image_size
+        self.data = None
+        self.dtype = list
+        self.name = self.__class__.__name__
+        self._image_names = None
+
+        logging.debug(f"Initializing {self.name}")
+
+    @abstractmethod
+    def run(self):
+        logging.info(f"Starting {self.name}")
     
+    # @abstractmethod
+    # def tensorboard(self):
+        # pass
+
+class DataLoader(BaseLoader):
+    """DataLoader -> a Threaded IO & Numpy Opertions Wraper."""
+    def __init__(self, **kwargs : dict):
+        """
+        @param: dir_path: C{str} -> The dir to load the pictures from.
+        @param: image_size: C{int} -> The size the images should be resized to befor flattening them [size, size, 3] -> [size * size * 3]
+        """
+        super().__init__(**kwargs)
+        self.dataset = []
+        # self.dtype = list
+        self.dir_path = self.dir_path.split("*")[-2] #replace("*", "")
+        self._image_names = None
+        logging.debug(f"Dir path is: {self.dir_path}")
+
+
     def run(self):
         """
         @remarks *The only function that the user should call.
@@ -87,21 +108,23 @@ class DataLoaderWraper():
                  *There is an option to use ProcessPoolExecutor but the number of @MAX_WORKERS will have to be lower. 
                  *If an error acourd it will be loged & raised.
         """
-        logging.info("Starting DataLoaderWraper")
+        logging.info(f"Starting {self.name}")
         start = time.time()
         image_paths = self._list_images()
-        ImagesList = []
+
+        logging.debug("Loading Images")
         with tqdm(total=len(image_paths)) as pbar:
             with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
                 future_to_image = {executor.submit(self._load_image, image_path): image_path for image_path in image_paths}
                 for future in concurrent.futures.as_completed(future_to_image):
                     data = future.result()
                     pbar.update(1)
-                    ImagesList.append(data)
+                    self.dataset.append(data)
                     
         end = time.time() - start
-        logging.info(f"It took {end} Seconds To Load {len(ImagesList)} Images")
-        return ImagesList
+        logging.info(f"It took {end} Seconds To Load {len(self.dataset)} Images")
+        self._image_names = [image.basename for image in self.dataset]
+        return self.dataset
         
     def _load_image(self, image_path : str):
         """
@@ -128,83 +151,75 @@ class DataLoaderWraper():
                 image_list.append(os.path.join(self.dir_path, image_name))
         return image_list
 
-class DataGenerator():
-    """DataGenerator ."""
-    def __init__(self, dir_path : str, image_size: int, batch_size: int):
+class TensorLoader(BaseLoader):
+    """TensorLoader ."""
+    def __init__(self, **kwargs : dict):
         """
-        @dir_path: C{str} -> The dir to load the pictures from.
-        @image_size: C{int} -> The size the images should be resized to befor flattening them [size, size, 3] -> [size * size * 3]
+        @param BaseLoader.dir_path: C{str} -> The dir to load the pictures from.
+        @param BaseLoader.image_size: C{int} -> The size the images should be resized to befor flattening them [size, size, 3] -> [size * size * 3]
+        @param AUTOTUNE C{tf.data.experimental.AUTOTUNE} -> ..
+        @param tensor: C{bool} -> ..
         """
-        logging.debug("Initializing DataGenerator")
-        self.dir_path = dir_path
-        self.image_size = image_size
-        self.batch_size = batch_size
-        self.image_paths = self._list_images()
-        self.batch_start = 0
-        self.ImagesList = []
-        self.finished=False
-
-    def run_batch(self):
+        super().__init__(**kwargs)
+        self.AUTOTUNE = tf.data.experimental.AUTOTUNE
+        self.dtype = tf.data.Dataset
+        self.dataset = None
+        # self.tensorboard_dataset = self._tensorboard_dataset()
+        self._image_names = [image_name for image_name in glob.glob(self.dir_path)]
+        # self.iterator = None
+    
+    # @tf.function
+    def run(self, batch_size: int, shuffle : bool, num_epochs : int, **kwrags):
         """
-        @remarks *The only function that the user should call.
-                 *Will start the invoketion of ThreadPoolExecutor(@MAX_WORKERS).
-                 *There is an option to use ProcessPoolExecutor but the number of @MAX_WORKERS will have to be lower. 
-                 *If an error acourd it will be loged & raised.
         """
-        logging.info("Starting DataGenerator")
-        if not self.finished:
-            start = time.time()
-            batch = []
-            with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-                future_to_image = {}
-                if self.batch_start + self.batch_size < len(self.image_paths):
-                    batch_end = self.batch_start + self.batch_size  
-                else:
-                    batch_end = len(self.image_paths)
-                    self.finished = True
-                for image_path in self.image_paths[self.batch_start:batch_end]:
-                    future_to_image[executor.submit(self._load_image, image_path)] = image_path 
-               
-                for future in concurrent.futures.as_completed(future_to_image):
-                    data = future.result()
-                    batch.append(data)
-
-            end = time.time() - start
-            self.ImagesList += batch
-            logging.info(f"It took {end} Seconds To Load {len(batch)} Images")
-            yield batch
+        options = tf.data.Options()
+        options.experimental_optimization.autotune_buffers = True
+        options.experimental_optimization.autotune_cpu_budget = True
+        self.dataset = tf.data.Dataset.list_files(self.dir_path, shuffle=shuffle)   
+        self.dataset = self.dataset.map(self._load_tensor, num_parallel_calls=self.AUTOTUNE).repeat(num_epochs)
+        self.dataset = self.dataset.with_options(options)
+        if batch_size is not None:
+            self.dataset = self.dataset.batch(batch_size, drop_remainder=True).prefetch(self.AUTOTUNE).cache()
         else:
-            logging.info("Finished Loading..")
-            raise StopIteration("No more data")
+            self.dataset = self.dataset.prefetch(self.AUTOTUNE).cache()   
+        # self.iterator = self.dataset.make_one_shot_iterator()
+        return self.dataset
+    
+    # @tf.function
+    def _load_tensor(self, image_path : str):
+        """
+        """
+        image = tf.io.read_file(image_path)
+        image = tf.image.decode_jpeg(image)
+        image = tf.image.convert_image_dtype(image, tf.float32)
+        image = tf.image.resize(image, size=[self.image_size, self.image_size])
+        image = tf.reshape(image, [-1])
+        return image 
 
-    def _load_image(self, image_path : str):
+    def hollow_images(self):
         """
-        @param image_path: C{str} -> The image path to load.
-        @return: C{Image} -> An @Image Object containing information about the image.
-        """
-        # logging.debug(f"Loading {image_path}")
-        np_image = np.asarray(cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB), dtype=np.float32)
-        # logging.debug(f"resizing {image_path}")
-        np_image = np.resize(np_image, (self.image_size, self.image_size, 3))
-        np_image = np_image.flatten()
-        return Image(src_path=image_path, data=np_image)
-        
-    def _list_images(self):
-        """
-        @return C{list} -> A list of image paths
         @remarks *A simple function the will list all the supported images in a folder
                  *The list of supported image types can be found at @common.IMAGE_TYPES
         """
         logging.debug("Listing Images")
         image_list = []
-        for image_name in os.listdir(self.dir_path):
+        _dir_path = self.dir_path.replace("*", "")
+        for image_name in os.listdir(_dir_path):
             if image_name.split('.')[-1].lower() in IMAGE_TYPES:
-                image_list.append(os.path.join(self.dir_path, image_name))
+                image_path = os.path.join(_dir_path, image_name) 
+                image_list.append(Image(src_path=image_path, data=None, hollow=True))
+
         return image_list
+
+    # def _tensorboard_dataset(self):
+    #     dataset = tf.data.Dataset.list_files(self.dir_path, shuffle=False)   
+    #     dataset = dataset.map(self._load_tensor, num_parallel_calls=self.AUTOTUNE)
+    #     dataset = dataset.cache().prefetch(self.AUTOTUNE)   
+    #     return dataset
 
 class IOWraper():
     """IOWraper -> An Object which handles multithreaded IO Opartions."""
-    def __init__(self, data : list, wraper_output : WraperOutput, model_name : str):
+    def __init__(self, data: list, wraper_output: WraperOutput, model_name: str, base_path: str, **kwargs: dict):
         """
         @param data: C{list} -> A List of Image Objects.
         @param wraper_output: C{WraperOutput} -> The Output returned by on of the @BaseWrapers.
@@ -214,7 +229,8 @@ class IOWraper():
         self.data = data
         self.wraper_output = wraper_output
         self.model_name = model_name
-        # self._clean()
+        self.base_path = base_path
+        # self._clean() DONT USE
 
     def _clean(self):
         """
@@ -236,7 +252,7 @@ class IOWraper():
         """
         logging.debug("Merging Images & WraperOutput")
         for (image, cluster_label) in zip(self.data, self.wraper_output.cluster_labels):
-            image.dst_dir = os.path.join(OUTPUT_DIR_PATH, self.model_name, CLUSTER_NAME_FORMAT.format(cluster_label))
+            image.dst_dir = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, CLUSTER_NAME_FORMAT.format(cluster_label))
             image.cluster_n = int(cluster_label)
             # image.free() -> Only free if You dont want to use Tensorboard.
             image.flush()
@@ -254,7 +270,7 @@ class IOWraper():
             # future_to_dir = {executor.submit(os.mkdir, f"cluster_{dir_index}"): dir_index for dir_index in range(self.silhouette_score.n_clusters)}
             future_to_dir = {}
             for dir_index in range(self.wraper_output.n_clusters):
-                dir_path = os.path.join(OUTPUT_DIR_PATH, self.model_name, f"cluster_{dir_index}")
+                dir_path = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, f"cluster_{dir_index}")
                 future_to_dir[executor.submit(os.makedirs, dir_path)] = dir_index
 
             for future in concurrent.futures.as_completed(future_to_dir):
@@ -277,80 +293,4 @@ class IOWraper():
                         pbar.update(1)
                         
         logging.debug("Finished Moving data")
-
-class TensorboardWraper():
-    """TensorboardWraper -> A Class that will generate Tensorboard projector Files."""
-    def __init__(self, data : list, X: np.ndarray=None, y : list=None):
-        """
-        @param data: C{list} -> A List of Image Objects.
-        @param X: Optional C{np.ndarray} -> A np.ndarray of Image.data Arrrays.
-        @param y: Optional C{list} -> A list of Image.n_cluster, Could be improved into cluster_{cluster_n}
-        @remarks: *Normal usage will provide the data varibale and X,y will be extracted via self._image_to_nd,
-                       In the Future Image object itself will have this builtin.
-                  *When Using TensorboardWraper.load(), on initiliazition, specify data=None, a warning will be logged,
-                       It will remind you to use TensorboardWraper.load() because no data is loaded.
-
-        """
-        self.data = data
-        if X is not None and y is not None:
-            self.X = X
-            self.y = y
-        elif self.data is not None and self.data.data is not None:
-            self._image_to_nd()
-        else:
-            logging.warn("Please Make sure to use TensorboardWraper.load() OR you called Image.free(), Data is <None>")
-
-    def save(self):
-        """
-        @remarks: *Save self.data & self.labels to .npy Files for future use.
-                    *Can be loaded via @IntergrationSuit.visualize_from_file() OR @self.load() -> Should not be USED!
-        """
-        if self.y is not None and self.X is not None:        
-            filenameX = f"X_{self.data[0].shape}.npy"
-            filenameY = f"Y_{self.data[0].shape}.npy"
-            logging.info(f"Saving Clustering X Data to: {filenameX}")
-            np.save(filenameX, self.X)
-            logging.info(f"Saving Clustering Y Data to: {filenameY}")
-            np.save(filenameY, self.y)
-
-    def load(self, filename : str):
-        """
-        @param filename: The base Filename (aka (60,784).npy)
-        @remarks *it will look for X_filename & Y_filename, (DON'T Specify 'X_' or 'Y_')!
-        """
-        logging.info(f"Loading X_{filename} & Y_{filename}")
-        self.X = np.load(f"X_{filename}")
-        self.y = np.load(f"Y_{filename}")
-        logging.info("You can call Visualize3D.show()")
-
-    def _image_to_nd(self):
-        """
-        @param data: C{list} -> a list on Image Objects.
-        @remarks *Will Split an Image object into Image.data & image.cluster_n (aka X, y).
-                *Make sure you call @IOWraper.marge_data() befor Visualizing.
-                *RuntimeWarning will be raised if there are missing values.
-                *Will be implemnted into the Image object in the future.
-        """
-        logging.debug("Transforming data to visualization format")
-        self.X = np.asarray([image.data for image in self.data])
-        self.y = [image.cluster_n for image in self.data if image.cluster_n is not None]
-        if len(self.y) == 0:
-            raise RuntimeWarning("Make sure you @IOWraper.marge_data(), no Labels are Avilable")
-
-    def create_tensorboard_output(self, name : str="Imagefy"):
-        """
-        @param name: C{str} -> The Tensor name, doesnt really have a meaning in this context.
-        @remarks *Might launch a subprocess that will run Tensorboard & open Chrome in the futre
-        """
-        if self.X is not None and self.y is not None:
-            logging.info("Creating Tensorboard metadata")
-            images_features_labels = {}
-            images_features_labels[name] = [None, self.X, self.y]
-            logging.info("Saving Embeddings")
-            log_name = f"{name}-{time.time()}"
-            save_embeddings(images_features_labels, os.path.join(os.getcwd(),TENSORBOARD_LOG_DIR, log_name))
-            logging.info(f"Run tensorboard --logdir={TENSORBOARD_LOG_DIR + '/' + log_name}")
-            logging.info("Go to http://localhost:6006/ and click Projector")
-        else:
-            logging.warn("Please Make sure to use TensorboardWraper.load() OR you called Image.free(), Data is <None>")
 

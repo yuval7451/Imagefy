@@ -3,27 +3,67 @@
 Author: Yuval Kaneti⭐
 """
 #### IMPORTS ####
-import os
+import os;  os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import time
 import logging
 import numpy as np
-from integration.utils.common import TENSORBOARD_LOG_DIR
+import tensorflow as tf; tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+from integration.utils.common import TENSORBOARD_LOG_DIR, LOG_DIR, MODEL_LOG_DIR
+from integration.utils.data_utils import BaseLoader
+from integration.plugins.tensorboard import TensorboardWraper, Tensorboard
 from abc import ABC, abstractmethod
 
 class BaseWraper(ABC):
     """BaseWraper -> An Abstract Class for TensorflowWrapers."""
-    def __init__(self):
-        self._data = None
+    def __init__(self, data : list, tensorboard : bool, loader : BaseLoader, base_path: str, **kwrags):
+        self._data = data
+        self._use_tensorboard = tensorboard
         self.name = self.__class__.__name__
+        
         self.model_name = f"{self.name}-{time.time()}" 
-        self.model_dir=os.path.join(os.getcwd(),TENSORBOARD_LOG_DIR, self.model_name)
-    
+        self.base_path = base_path
+        self.base_model_dir = os.path.join(self.base_path, LOG_DIR, self.model_name)
+        self.model_dir = os.path.join(self.base_model_dir, MODEL_LOG_DIR)
+        self.tensorboard_dir = os.path.join(self.base_model_dir, TENSORBOARD_LOG_DIR)
+
+        self._kwrags = kwrags
+        self._loader = loader
+        self._input_fn = self._loader.run if self._loader.dtype is tf.data.Dataset else self.input_fn
+        self.wraper_output = None
+        logging.debug(f"Initilazing {self.name}")
+
     @abstractmethod
     def run(self):
-        logging.info(f"Starting {self.__class__.__name__}")
-
+        logging.info(f"Starting {self.name}")
 
     def Wraperize(self):
         X = np.asarray([ImageObj.data for ImageObj in self._data])
-        y = [ImageObj.src_path for ImageObj in self._data]
-        return (X, y)
+        filenames = [ImageObj.src_path for ImageObj in self._data]
+        logging.debug(f"Wraperize X: {X.shape}")
+        return (X, filenames)
+
+    def input_fn(self, num_epochs: int, **kwrags):
+        (self.X, filenames) = self.Wraperize()
+        # For Futere Refrence
+        return tf.data.Dataset.from_tensors(self.X).repeat(num_epochs)
+        # return tf.compat.v1.train.limit_epochs(
+        #     tf.convert_to_tensor(self.X, dtype=tf.float32), num_epochs=num_epochs)
+
+    def update(self):
+        for (image, cluster_label) in zip(self._data, self.wraper_output.cluster_labels):
+            image.cluster_n = int(cluster_label)
+
+    def _tensorboard(self, dtype: type):
+        if dtype is list:
+            X, filenames = self.Wraperize()
+            y = self.wraper_output.cluster_labels
+            tensor_board = Tensorboard(data=None, X=X, y=(y, filenames), name=self.name, base_model_dir=self.base_model_dir, **self._kwrags)
+            tensor_board.run()  
+        else:
+            y = self.wraper_output.cluster_labels
+            filenames = self._loader._image_names
+            tensor_board = TensorboardWraper(name=self.name, base_model_dir=self.base_model_dir, y=(y, filenames), **self._kwrags)
+            tensor_board.save_labels()
+            tensor_board.run()
+    
+        # @tf.function

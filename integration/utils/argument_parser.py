@@ -1,10 +1,11 @@
 #! /usr/bin/env python3
-
+import os
 import argparse
-from integration.utils.common import IMAGE_SIZE, MINI_KMEANS_NUM_ITERATIONS, ITER_DEST, TENSORBOARD_NAME_PARAM, TENSORBOARD_NAME_DEST, SAVE_MODEL_DEST
-from integration.utils.common import DIR_DEST, VERBOSE_DEST, SIZE_DEST, TENSORBOARD_DEST, KMEANS_DEST, START_DEST, END_DEST, MINI_KMEAND_DEST, ITER_DEST, NUM_CLUSTERS_DEST
-#     args = main_parser.parse_args()
-#     return args
+from integration.utils.common import IMAGE_SIZE, MINI_KMEANS_NUM_EPOCHS, EPOCHS_DEST, NUM_ITERATION_DEST, \
+    TENSORBOARD_NAME_DEST, SAVE_MODEL_DEST, DATA_LOADER_DEST, LOADER_DEST, LOADER_OPTIONS, DIR_DEST, VERBOSE_DEST, \
+    SIZE_DEST, TENSORBOARD_DEST, KMEANS_DEST, START_DEST, END_DEST, MINI_KMEAND_DEST, NUM_CLUSTERS_DEST, \
+    BATCH_SIZE_DEST, MINI_KMEANS_BATCH_SIZE, BASE_PATH_DEST
+
 
 def arg_parser():
     # create the top-level main_parser
@@ -22,16 +23,22 @@ def arg_parser():
 
     main_parser.add_argument('-t','--tensorboard', action='store_true',
                         help="Save Tensorboard output", dest=TENSORBOARD_DEST)
+       
+    main_parser.add_argument('-l', '--loader', action='store', type=str, 
+                        required=True, help="Should we Save he trained model",
+                        default=DATA_LOADER_DEST, dest=LOADER_DEST, choices=LOADER_OPTIONS)
+
+    main_parser.add_argument('-p', '--path', action='store', type=str,
+                        help="base path for logs, results and more", 
+                        dest=BASE_PATH_DEST, default=os.getcwd(), required=True)
     
-    main_parser.add_argument('-l', '--tensor_log', action='store',
-                        help="Save Tensorboard output", dest=TENSORBOARD_NAME_DEST, default=TENSORBOARD_NAME_PARAM)
     
-    #
-    sub_parsers = main_parser.add_subparsers(help='Which Wraper to use') #dest='wraper'
+    
+    sub_parsers = main_parser.add_subparsers(help='Which Wraper to use') 
 
     #Sub Parsers
     kmeans_sub_parser(sub_parsers=sub_parsers)
-    mini_batch_kmeans(sub_parsers=sub_parsers)
+    mini_batch_kmeans_sub_parser(sub_parsers=sub_parsers)
     #aliases=['co']
     args = main_parser.parse_args()
     return args
@@ -44,14 +51,22 @@ def kmeans_sub_parser(sub_parsers): #parents=[main_parser]
 
     kmeans_parser.add_argument('--end', action='store', type=int, 
                         required=True, help="The end number of neighbors", dest=END_DEST)
-    kmeans_parser.set_defaults(wraper='kmeans')
 
-def mini_batch_kmeans(sub_parsers):
+    kmeans_parser.add_argument('-i','--iter', action='store', type=int, 
+                        required=True, help="The number of iterations of training <1000 ish>", dest=NUM_ITERATION_DEST)
+                        
+    kmeans_parser.set_defaults(wraper=KMEANS_DEST)
+
+def mini_batch_kmeans_sub_parser(sub_parsers):
     mini_kmeans_parser = sub_parsers.add_parser(MINI_KMEAND_DEST, help='Arguments for the Mini Batch Kmeans Wraper', add_help=False)
 
-    mini_kmeans_parser.add_argument('-i', '--iter', action='store', type=int, 
-                        required=True, help="The number of iteration", dest=ITER_DEST,
-                        default=MINI_KMEANS_NUM_ITERATIONS)
+    mini_kmeans_parser.add_argument('-e', '--epochs', action='store', type=int, 
+                        required=True, help="The number of epochs", dest=EPOCHS_DEST,
+                        default=MINI_KMEANS_NUM_EPOCHS)
+    
+    mini_kmeans_parser.add_argument('-b', '--batch_size', action='store', type=int, 
+                        required=True, help="The batch size", dest=BATCH_SIZE_DEST,
+                        default=MINI_KMEANS_BATCH_SIZE)
 
     mini_kmeans_parser.add_argument('-c','--num_clusters', action='store', type=int, 
                         required=True, help="The number of clusters in Mini Batch Kmeans", dest=NUM_CLUSTERS_DEST)
@@ -60,9 +75,7 @@ def mini_batch_kmeans(sub_parsers):
                         required=False, help="Should we Save he trained model",
                         default=False, dest=SAVE_MODEL_DEST)
 
-
-    # SAVE_MODEL_DEST
-    mini_kmeans_parser.set_defaults(wraper="mini-kmeans")
+    mini_kmeans_parser.set_defaults(wraper=MINI_KMEAND_DEST)
 
 """
 name or flags - Either a name or a list of option strings, e.g. foo or -f, --foo.
@@ -76,20 +89,4 @@ required - Whether or not the command-line option may be omitted (optionals only
 help - A brief description of what the argument does.
 metavar - A name for the argument in usage messages.
 dest - The name of the attribute to be added to the object returned by parse_args().
-"""
-
-"""
-parent_parser = argparse.ArgumentParser(add_help=False)
-parent_parser.add_argument('--parent', type=int)
-
-foo_parser = argparse.ArgumentParser(parents=[parent_parser])
-foo_parser.add_argument('foo')
-foo_parser.parse_args(['--parent', '2', 'XXX'])
-Namespace(foo='XXX', parent=2)
-
-bar_parser = argparse.ArgumentParser(parents=[parent_parser])
-bar_parser.add_argument('--bar')
-bar_parser.parse_args(['--bar', 'YYY'])
-Namespace(bar='YYY', parent=None)
-
 """

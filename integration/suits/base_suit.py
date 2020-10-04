@@ -4,10 +4,10 @@
 #### Imports ####
 import logging
 from abc import ABC, abstractclassmethod
-from integration.utils.common import WRAPERS_DIR, WRAPER_PREFIX
-from integration.wrapers.mini_batch_kmeans_tensorflow_wraper import MiniBatchKmeansTensorflowWraper, MiniBatchKmeansWraperOutput
-from integration.wrapers.kmeans_tensorflow_wraper import KmeansTensorflowWraper, KmeansWraperOutput 
-from integration.utils.common import KMEANS_DEST, MINI_KMEAND_DEST 
+from integration.wrapers.mini_batch_kmeans_tensorflow_wraper import MiniBatchKmeansTensorflowWraper
+from integration.wrapers.kmeans_tensorflow_wraper import KmeansTensorflowWraper 
+from integration.utils.data_utils import DataLoader, TensorLoader
+from integration.utils.common import KMEANS_DEST, MINI_KMEAND_DEST, DATA_LOADER_DEST, TENSOR_LADER_DEST
 
 class BaseSuit(ABC):
     """BaseSuit -> Some Kind of Class that controls everything."""
@@ -18,7 +18,9 @@ class BaseSuit(ABC):
         self.kwargs = kwargs
         # Asign Paramete
         self._wrapers = self._get_wrapers()
+        self._loaders = self._get_loaders()
         self._wraper = None
+        self._loader = None
         self.WraperOutput = None
         self.IOHandler = None
 
@@ -40,6 +42,14 @@ class BaseSuit(ABC):
         # module = __import__(module_name)
         # my_class = getattr(module, class_name)
         # instance = my_class()
+
+    def _get_loaders(self):
+        _loaders = {
+            TENSOR_LADER_DEST: TensorLoader,
+            DATA_LOADER_DEST: DataLoader,
+        }
+        logging.debug(f"Loading {len(_loaders)} Loaders")
+        return _loaders
 
     # def _get_wrapers_path(self):
     #     _wrapers_path = [os.path.join(WRAPERS_DIR, wraper).replace("\\", ".") for wraper in os.listdir(WRAPERS_DIR) if wraper.endswith(WRAPER_PREFIX)]

@@ -8,15 +8,12 @@ from integration.utils.argument_parser import arg_parser
 from integration.suits.intergration_suit import IntergrationSuit
 from integration.utils.enum import Enum
 #### Functions ####
+
 def main():
     logging.info("Starting Main")
     args = arg_parser()
-    # print(args)
-
-   
     suit = IntergrationSuit(**vars(args))
     suit.run()
-    # suit.tensorboard()
 
 if __name__ == '__main__':
     main()

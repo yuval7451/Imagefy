@@ -7,36 +7,43 @@ Author: Yuval Kaneti⭐
 """
 
 #### Imports ####
-import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import os;  os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import logging
 import numpy as np
-import tensorflow as tf; tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+import tensorflow as tf
+from sklearn.metrics import silhouette_score
 from integration.wrapers.base_wraper import BaseWraper
-from sklearn.metrics import silhouette_samples, silhouette_score
 from integration.utils.data_utils import WraperOutput
 
 class KmeansTensorflowWraper(BaseWraper):
     """KmeansTensorflowWraper -> An implemntion of Kmeans & silhouette_score in Tensorflow."""
-    def __init__(self, data : list, start_k : int, end_k : int, **kwargs : dict):
+    def __init__(self, start_k: int, end_k: int, num_iteration: int, **kwargs: dict):
         """
         @param data: C{list} -> a list of Image Objects.
         @param start_k: C{int} -> the minimum number of Cluster to try kmeans with
         @param end_k: C{int} -> the maximum number of Cluster to try kmeans with
         """
-        super().__init__()
-        self._data = data
+        super().__init__(**kwargs)
+        # self._data = data
         self._start_k = start_k
         self._end_k = end_k
-        
+        self._num_iteration = num_iteration
+        if self._loader.name != 'DataLoader': raise RuntimeError(f"{self._loader.name} is not supported with {self.name}, pleas use DataLoader -> --loader data_loader")
+        # self.use_tensorboard = tensorboard
+
     def run(self):
         """
         @remarks *This is where the action starts.
                  *Will run kmeans (end_k - start_k) times and Compare the results with SilhouetteScore.
         """
         self._validate_input()
-        (self.X, self.y) = self.Wraperize()
-        kmeans_wraper_output = self._silhouette() 
-        return kmeans_wraper_output
+        (self.X, self.filenames) = self.Wraperize()
+        self.wraper_output = self._silhouette()
+        if self._use_tensorboard:
+            # ?
+            # self.update()
+            self._tensorboard(dtype=self._loader.dtype)
+        return self.wraper_output
 
     def _validate_input(self):
         """
@@ -115,19 +122,20 @@ class KmeansTensorflowWraper(BaseWraper):
             with tf.control_dependencies([is_continue]):
                 loop = tf.group(centroids.assign(means), prev_assignments.assign(point_to_centroid_assignment))
 
-            sess = tf.Session()
-            sess.run(tf.global_variables_initializer())
+            sess = tf.compat.v1.Session()
+            sess.run(tf.compat.v1.global_variables_initializer())
 
             # 1000 iterations or no delta
             has_changed = True
             num_iter =  0
-            while has_changed and num_iter < 1000:
+            while has_changed and num_iter < self._num_iteration:
                 num_iter += 1
                 has_changed, _ = sess.run([is_continue, loop])
             # see how the data is assigned
             res = sess.run(point_to_centroid_assignment)
             # print(list(res))
         return list(res)
+    
 
 class KmeansWraperOutput(WraperOutput):
     """KmeansWraperOutput -> A WraperOutput Object for KemansTensorflowWraper with Silhouette Score."""

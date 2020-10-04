@@ -3,10 +3,10 @@
 
 #### Imports ####
 
-import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import os
 import logging
 import numpy as np
-import tensorflow as tf; tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+import tensorflow as tf
 from integration.wrapers.base_wraper import BaseWraper
 from integration.utils.data_utils import WraperOutput
 
@@ -41,7 +41,7 @@ class MeanShiftTensorflowWraper(BaseWraper):
         
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
-        self.sess = tf.Session(config=config)
+        self.sess = tf.compat.v1.Session(config=config)
     
     def run(self):
         """
