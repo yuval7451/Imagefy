@@ -2,18 +2,25 @@
 # Author: Yuval Kaneti⭐
 
 #### Imports ####
+import time, datetime
 import logging
 import numpy as np
 from integration.utils.argument_parser import arg_parser
 from integration.suits.intergration_suit import IntergrationSuit
-from integration.utils.enum import Enum
+# from integration.utils.enum import Enum
 #### Functions ####
 
 def main():
-    logging.info("Starting Main")
+    start = time.time()
+    t = datetime.datetime.now() #.strftime("%Y%m%d-%H%M%S")
+    logging.info(f"Starting Main at {t}")
     args = arg_parser()
     suit = IntergrationSuit(**vars(args))
     suit.run()
+    end  = time.time() - start
+    t = datetime.datetime.now() #.strftime("%Y%m%d-%H%M%S")
+    logging.info(f"Finished Running Main at {t}")
+    logging.info(f"Program took {end} Seconds to run")
 
 if __name__ == '__main__':
     main()

@@ -2,10 +2,9 @@
 import os
 import argparse
 from integration.utils.common import IMAGE_SIZE, MINI_KMEANS_NUM_EPOCHS, EPOCHS_DEST, NUM_ITERATION_DEST, \
-    TENSORBOARD_NAME_DEST, SAVE_MODEL_DEST, DATA_LOADER_DEST, LOADER_DEST, LOADER_OPTIONS, DIR_DEST, VERBOSE_DEST, \
+    SAVE_MODEL_DEST, DATA_LOADER_DEST, LOADER_DEST, LOADER_OPTIONS, DIR_DEST, VERBOSE_DEST, \
     SIZE_DEST, TENSORBOARD_DEST, KMEANS_DEST, START_DEST, END_DEST, MINI_KMEAND_DEST, NUM_CLUSTERS_DEST, \
     BATCH_SIZE_DEST, MINI_KMEANS_BATCH_SIZE, BASE_PATH_DEST
-
 
 def arg_parser():
     # create the top-level main_parser
@@ -28,10 +27,9 @@ def arg_parser():
                         required=True, help="Should we Save he trained model",
                         default=DATA_LOADER_DEST, dest=LOADER_DEST, choices=LOADER_OPTIONS)
 
-    main_parser.add_argument('-p', '--path', action='store', type=str,
-                        help="base path for logs, results and more", 
+    main_parser.add_argument('-o', '--output', action='store', type=str,
+                        help="the output base path for logs, results and more", 
                         dest=BASE_PATH_DEST, default=os.getcwd(), required=True)
-    
     
     
     sub_parsers = main_parser.add_subparsers(help='Which Wraper to use') 
@@ -39,7 +37,6 @@ def arg_parser():
     #Sub Parsers
     kmeans_sub_parser(sub_parsers=sub_parsers)
     mini_batch_kmeans_sub_parser(sub_parsers=sub_parsers)
-    #aliases=['co']
     args = main_parser.parse_args()
     return args
 
@@ -77,16 +74,4 @@ def mini_batch_kmeans_sub_parser(sub_parsers):
 
     mini_kmeans_parser.set_defaults(wraper=MINI_KMEAND_DEST)
 
-"""
-name or flags - Either a name or a list of option strings, e.g. foo or -f, --foo.
-action - The basic type of action to be taken when this argument is encountered at the command line.
-nargs - The number of command-line arguments that should be consumed.
-const - A constant value required by some action and nargs selections.
-default - The value produced if the argument is absent from the command line.
-type - The type to which the command-line argument should be converted.
-choices - A container of the allowable values for the argument.
-required - Whether or not the command-line option may be omitted (optionals only).
-help - A brief description of what the argument does.
-metavar - A name for the argument in usage messages.
-dest - The name of the attribute to be added to the object returned by parse_args().
-"""
+

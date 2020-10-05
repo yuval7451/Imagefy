@@ -14,6 +14,7 @@ import tensorflow as tf
 from sklearn.metrics import silhouette_score
 from integration.wrapers.base_wraper import BaseWraper
 from integration.utils.data_utils import WraperOutput
+from integration.utils.common import BATCH_SIZE_DEST
 
 class KmeansTensorflowWraper(BaseWraper):
     """KmeansTensorflowWraper -> An implemntion of Kmeans & silhouette_score in Tensorflow."""
@@ -25,9 +26,11 @@ class KmeansTensorflowWraper(BaseWraper):
         """
         super().__init__(**kwargs)
         # self._data = data
+
         self._start_k = start_k
         self._end_k = end_k
         self._num_iteration = num_iteration
+        self.kwargs = kwargs
         if self._loader.name != 'DataLoader': raise RuntimeError(f"{self._loader.name} is not supported with {self.name}, pleas use DataLoader -> --loader data_loader")
         # self.use_tensorboard = tensorboard
 
@@ -42,7 +45,7 @@ class KmeansTensorflowWraper(BaseWraper):
         if self._use_tensorboard:
             # ?
             # self.update()
-            self._tensorboard(dtype=self._loader.dtype)
+            self._tensorboard(dtype=self._loader.dtype, batch_size=self.kwargs.get(BATCH_SIZE_DEST))
         return self.wraper_output
 
     def _validate_input(self):

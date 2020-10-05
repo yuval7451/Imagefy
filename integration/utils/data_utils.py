@@ -33,7 +33,10 @@ class Image():
             self.shape = self.data.shape
         else:
             self.shape = (None,)
-  
+    
+    def __str__(self):
+        return f"src: {self.src_path}, dst: {self.dst_path}, cluster: {self.cluster_n}, shape: {self.shape}, hollow: {self.hollow}"
+
     def free(self):
         """
         @remarks *Deletes the image data from memory.
@@ -110,12 +113,12 @@ class DataLoader(BaseLoader):
         """
         logging.info(f"Starting {self.name}")
         start = time.time()
-        image_paths = self._list_images()
+        self._image_names = self._list_images()
 
         logging.debug("Loading Images")
-        with tqdm(total=len(image_paths)) as pbar:
+        with tqdm(total=len(self._image_names)) as pbar:
             with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-                future_to_image = {executor.submit(self._load_image, image_path): image_path for image_path in image_paths}
+                future_to_image = {executor.submit(self._load_image, image_path): image_path for image_path in self._image_names}
                 for future in concurrent.futures.as_completed(future_to_image):
                     data = future.result()
                     pbar.update(1)
@@ -123,7 +126,7 @@ class DataLoader(BaseLoader):
                     
         end = time.time() - start
         logging.info(f"It took {end} Seconds To Load {len(self.dataset)} Images")
-        self._image_names = [image.basename for image in self.dataset]
+        # self._image_names = [image.basename for image in self.dataset]
         return self.dataset
         
     def _load_image(self, image_path : str):
@@ -164,18 +167,20 @@ class TensorLoader(BaseLoader):
         self.AUTOTUNE = tf.data.experimental.AUTOTUNE
         self.dtype = tf.data.Dataset
         self.dataset = None
+        self._image_names = np.asarray([image_name for image_name in glob.glob(self.dir_path)])
         # self.tensorboard_dataset = self._tensorboard_dataset()
-        self._image_names = [image_name for image_name in glob.glob(self.dir_path)]
         # self.iterator = None
     
-    # @tf.function
+    @tf.function
     def run(self, batch_size: int, shuffle : bool, num_epochs : int, **kwrags):
         """
         """
         options = tf.data.Options()
         options.experimental_optimization.autotune_buffers = True
         options.experimental_optimization.autotune_cpu_budget = True
-        self.dataset = tf.data.Dataset.list_files(self.dir_path, shuffle=shuffle)   
+        self.dataset = tf.data.Dataset.list_files(self.dir_path, shuffle=shuffle)
+        # self.dataset = tf.data.Dataset.list_files(self._image_names, shuffle=shuffle) 
+
         self.dataset = self.dataset.map(self._load_tensor, num_parallel_calls=self.AUTOTUNE).repeat(num_epochs)
         self.dataset = self.dataset.with_options(options)
         if batch_size is not None:
@@ -183,9 +188,9 @@ class TensorLoader(BaseLoader):
         else:
             self.dataset = self.dataset.prefetch(self.AUTOTUNE).cache()   
         # self.iterator = self.dataset.make_one_shot_iterator()
-        return self.dataset
-    
-    # @tf.function
+        return self.dataset   
+        
+    @tf.function
     def _load_tensor(self, image_path : str):
         """
         """
@@ -203,12 +208,14 @@ class TensorLoader(BaseLoader):
         """
         logging.debug("Listing Images")
         image_list = []
-        _dir_path = self.dir_path.replace("*", "")
-        for image_name in os.listdir(_dir_path):
-            if image_name.split('.')[-1].lower() in IMAGE_TYPES:
-                image_path = os.path.join(_dir_path, image_name) 
-                image_list.append(Image(src_path=image_path, data=None, hollow=True))
+        # _dir_path = self.dir_path.split("*")[-2]
+        # for image_name in os.listdir(_dir_path):
+        for image_name in self._image_names:
+            # if image_name.split('.')[-1].lower() in IMAGE_TYPES:
+            image_path = os.path.join(self.dir_path, image_name) 
+            image_list.append(Image(src_path=image_path, data=None, hollow=True))
 
+        logging.debug(f"{len(image_list)} hollow images")
         return image_list
 
     # def _tensorboard_dataset(self):
@@ -256,6 +263,7 @@ class IOWraper():
             image.cluster_n = int(cluster_label)
             # image.free() -> Only free if You dont want to use Tensorboard.
             image.flush()
+            # logging.debug(image)
 
     def create_output_dirs(self):
         """
@@ -287,7 +295,7 @@ class IOWraper():
         logging.debug("Moving Data")
         with tqdm(total=len(self.data)) as pbar:
             with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-                future_to_file_moved = {executor.submit(shutil.copy, image.src_path, image.dst_path): image for image in self.data}
+                future_to_file_moved = {executor.submit(shutil.copy, image.src_path, image.dst_path): image for image in self.data if image.src_path is not None and image.dst_path is not None}
                 for future in concurrent.futures.as_completed(future_to_file_moved):
                         result = future.result()
                         pbar.update(1)

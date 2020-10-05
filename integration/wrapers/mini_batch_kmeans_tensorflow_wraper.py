@@ -17,7 +17,7 @@ from integration.suits.config import Config
 
 class MiniBatchKmeansTensorflowWraper(BaseWraper):
     """MiniBatchKmeansTensorflowWraper -> An implemntion of Minibatch Kmeans in Tensorflow."""
-    def __init__(self, num_epochs : int, num_clusters : int, batch_size : int, save : bool, **kwargs : dict):
+    def __init__(self, num_epochs: int, num_clusters: int, batch_size: int, save: bool, **kwargs: dict):
         """
         @param data: C{list} -> a list of Image Objects.
         @param num_epochs: C{int} -> The number of Training epochs.
@@ -47,37 +47,40 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
         self.wraper_output = self._transform()
         if self._use_tensorboard:
             self._tensorboard()
-
+        
         return self.wraper_output
 
-    def _train(self, hooks):
+    def _train(self, hooks: list):
         # train
-        logging.info("Starting to train")
-        # for _ in tqdm(range(self.num_epochs)):
-        self.cluster.train(input_fn=lambda: self._input_fn(                                
-                                batch_size=self.batch_size,
-                                shuffle=False, 
-                                num_epochs=self.num_epochs),
-                                hooks=hooks)
-                                
-        score = self.cluster.score(input_fn=lambda: self._input_fn(                                       
+        with tf.device('/gpu:0'):
+            logging.info("Starting to train")
+            # for _ in tqdm(range(self.num_epochs)):
+            self.cluster.train(input_fn=lambda: self._input_fn(                                
                                     batch_size=self.batch_size,
                                     shuffle=False, 
-                                    num_epochs=self.num_epochs))
+                                    num_epochs=self.num_epochs),
+                                    hooks=hooks)
+                                    
+            score = self.cluster.score(input_fn=lambda: self._input_fn(                                       
+                                        batch_size=self.batch_size,
+                                        shuffle=False, 
+                                        num_epochs=self.num_epochs * 2))
 
-        logging.info(f"score: {score}")
-        logging.info("Saving Trainable Variables")
-        for value in  tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.TRAINABLE_VARIABLES):
-            tf.summary.histogram(value.name, value)
+            logging.info(f"score: {score}")
+            logging.info("Saving Trainable Variables")
+        
+        # for value in  tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.TRAINABLE_VARIABLES):
+        #     tf.summary.histogram(value.name, value)
 
     def _transform(self):
+        with tf.device('/gpu:0'):
         # map the input points to their clusters
-        logging.info("starting to Transform the data")
-        cluster_indices = list(self.cluster.predict_cluster_index(input_fn=lambda: self._input_fn(                                                                  
-                                                                  batch_size=self.batch_size,
-                                                                  shuffle=False, 
-                                                                  num_epochs=self.num_epochs)))
-                                                                  
+            logging.info("starting to Transform the data")
+            cluster_indices = list(self.cluster.predict_cluster_index(input_fn=lambda: self._input_fn(                                                                  
+                                                                    batch_size=self.batch_size,
+                                                                    shuffle=False, 
+                                                                    num_epochs=self.num_epochs)))
+            logging.debug("Ther are {len(cluster_indices)} labels")                                        
         return MiniBatchKmeansWraperOutput(cluster_labels=cluster_indices)
 
     def save(self):
@@ -96,7 +99,7 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
     def _tensorboard(self):
         if self._loader.dtype is tf.data.Dataset:        
             logging.warn("Tensorboard is in BETA with Tensorload")
-        super()._tensorboard(dtype=self._loader.dtype)
+        super()._tensorboard(dtype=self._loader.dtype, batch_size=self.batch_size)
 
 class MiniBatchKmeansWraperOutput(WraperOutput):
     """MiniBatchKmeansWraperOutput -> A WraperOutput Object for MiniBatchKemansTensorflowWraper."""

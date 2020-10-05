@@ -5,6 +5,8 @@ import tensorflow as tf
 from tensorflow.python.training import training_util
 from tensorflow.python.training.basic_session_run_hooks import SecondOrStepTimer
 from tensorflow.python.training.session_run_hook import SessionRunHook, SessionRunArgs
+# from tensorflow.python import debug as tf_debug
+# from tensorboard.plugins.beholder import BeholderHook
 
 class Config():
     def __init__(self, model_dir : str, base_model_dir):
@@ -22,7 +24,7 @@ class Config():
     def _config_proto(self):        
         config_proto = tf.compat.v1.ConfigProto(
             gpu_options=self._gpu_options(),
-            allow_soft_placement=True,
+            allow_soft_placement=False,
             log_device_placement=False,
         )
         return config_proto
@@ -38,11 +40,11 @@ class Config():
         return config
     
     def get_hooks(self):
-        return [self._metadata_hook()] #, self._summary_hook(), self._profile_hook()]
+        return [self._summary_hook()] #, self._profile_hook()] tf_debug.TensorBoardDebugHook("localhost:1337") BeholderHook(self.base_model_dir)
 
     def _summary_hook(self):
         summary_hook = tf.estimator.SummarySaverHook(
-            save_steps=5,
+            save_steps=1,
             output_dir=os.path.join(self.base_model_dir), #,'summary',
             # summary_op=tf.summary.merge_all()
             scaffold=tf.compat.v1.train.Scaffold(summary_op=tf.compat.v1.summary.merge_all())
@@ -60,7 +62,7 @@ class Config():
         return profile_hook 
 
     def _metadata_hook(self):
-        metadata_hook = MetadataHook(save_steps=10, output_dir=os.path.join(self.base_model_dir)) # 'metadata'
+        metadata_hook = MetadataHook(save_steps=1, output_dir=os.path.join(self.base_model_dir)) # 'metadata'
         return metadata_hook
 
 class MetadataHook(SessionRunHook):

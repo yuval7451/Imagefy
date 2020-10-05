@@ -4,7 +4,7 @@ Author: Yuval Kaneti⭐
 """
 #### IMPORTS ####
 import os;  os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-import time
+import datetime
 import logging
 import numpy as np
 import tensorflow as tf; tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
@@ -15,17 +15,17 @@ from abc import ABC, abstractmethod
 
 class BaseWraper(ABC):
     """BaseWraper -> An Abstract Class for TensorflowWrapers."""
-    def __init__(self, data : list, tensorboard : bool, loader : BaseLoader, base_path: str, **kwrags):
+    def __init__(self, data: list, tensorboard: bool, loader: BaseLoader, base_path: str, **kwrags):
         self._data = data
         self._use_tensorboard = tensorboard
         self.name = self.__class__.__name__
-        
-        self.model_name = f"{self.name}-{time.time()}" 
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
+        self.model_name = f"{self.name}-{current_time}" 
         self.base_path = base_path
         self.base_model_dir = os.path.join(self.base_path, LOG_DIR, self.model_name)
         self.model_dir = os.path.join(self.base_model_dir, MODEL_LOG_DIR)
         self.tensorboard_dir = os.path.join(self.base_model_dir, TENSORBOARD_LOG_DIR)
-
+        logging.basicConfig(filename=f"{os.path.join(self.base_model_dir, 'session.log')}", filemode='w')
         self._kwrags = kwrags
         self._loader = loader
         self._input_fn = self._loader.run if self._loader.dtype is tf.data.Dataset else self.input_fn
@@ -53,7 +53,7 @@ class BaseWraper(ABC):
         for (image, cluster_label) in zip(self._data, self.wraper_output.cluster_labels):
             image.cluster_n = int(cluster_label)
 
-    def _tensorboard(self, dtype: type):
+    def _tensorboard(self, dtype: type, batch_size: int):
         if dtype is list:
             X, filenames = self.Wraperize()
             y = self.wraper_output.cluster_labels
@@ -62,7 +62,20 @@ class BaseWraper(ABC):
         else:
             y = self.wraper_output.cluster_labels
             filenames = self._loader._image_names
-            tensor_board = TensorboardWraper(name=self.name, base_model_dir=self.base_model_dir, y=(y, filenames), **self._kwrags)
+            # assert len(y) == len(filenames)
+            if len(y) != len(filenames):
+                logging.debug(f"Labels (Cluster output): {len(y)}, filenames (os.listdir()): {len(filenames)}")
+                # logging.debug(y)
+                # logging.debug(filenames)
+                logging.warn("Error might be coming")
+                # filenames = filenames[:len(y)]
+
+            tensor_board = TensorboardWraper(name=self.name,
+                                             base_model_dir=self.base_model_dir,
+                                             y=(y, filenames), 
+                                             batch_size=batch_size, 
+                                             data_length=len(y), 
+                                             **self._kwrags)
             tensor_board.save_labels()
             tensor_board.run()
     
