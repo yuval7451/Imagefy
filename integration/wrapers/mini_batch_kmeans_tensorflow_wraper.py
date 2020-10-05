@@ -31,7 +31,7 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
         self._save = save if not save else False; logging.warn(f"{self.name}.Save() is not implemnted yet.`")
         self.wraper_output = None
         self.config = Config(self.model_dir, self.base_model_dir)
-
+        
     def run(self):
         """
         @remarks *This is where the action starts.
@@ -39,7 +39,7 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
     
         self.cluster = tf.compat.v1.estimator.experimental.KMeans(
             num_clusters=self.num_clusters,
-            use_mini_batch=True,
+            use_mini_batch=False,
             config=self.config.get_run_config(),
             # mini_batch_steps_per_iteration = 10,
         )
@@ -80,7 +80,7 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
                                                                     batch_size=self.batch_size,
                                                                     shuffle=False, 
                                                                     num_epochs=self.num_epochs)))
-            logging.debug("Ther are {len(cluster_indices)} labels")                                        
+            logging.debug(f"There are {len(cluster_indices)} labels")                                        
         return MiniBatchKmeansWraperOutput(cluster_labels=cluster_indices)
 
     def save(self):
