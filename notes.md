@@ -1,1 +1,0 @@
-[Invoking ptxas not supported on Windows Relying on driver to perform ptx] -> NVIDIA drivers to 431.60.

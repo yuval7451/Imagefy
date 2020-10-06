@@ -3,14 +3,12 @@
 Author: Yuval Kaneti⭐
 """
 #### IMPORTS ####
-import os;  os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-import datetime
+import os
 import logging
 import numpy as np
-import tensorflow as tf; tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-from integration.utils.common import LOG_DIR, MINI_BATCH_KMEANS_TENSORFLOW_WRAPER, INCEPTION_RESNET_TENSORFLOW_WRAPER
-from integration.utils.data_utils import BaseLoader
-from integration.plugins.tensorboard import TensorboardWraper
+from imagefy.utils.common import MINI_BATCH_KMEANS_TENSORFLOW_WRAPER, INCEPTION_RESNET_TENSORFLOW_WRAPER
+from imagefy.utils.data_utils import BaseLoader
+from imagefy.plugins.tensorboard import TensorboardWraper
 from abc import ABC, abstractmethod
 
 class BaseWraper(ABC):
@@ -55,7 +53,6 @@ class BaseWraper(ABC):
         """
         X = np.asarray([ImageObj.data for ImageObj in self._data])
         filenames = [ImageObj.src_path for ImageObj in self._data]
-        logging.debug(f"Wraperize X: {X.shape}")
         return (X, filenames)
 
     def update(self):
@@ -73,7 +70,7 @@ class BaseWraper(ABC):
         labels = self.wraper_output.cluster_labels
         filenames = self._loader._image_names
         if len(labels) != len(filenames):
-            logging.debug(f"Labels (Cluster output): {len(labels)}, filenames (os.listdir()): {len(filenames)}")
+            logging.debug(f"Labels from Data Loader & filenames from IOWraper dont match\n fileanems will be truncated, this is a known issue.")
 
         tensor_board = TensorboardWraper(name=self.name,
                                         base_model_dir=self.base_model_dir,

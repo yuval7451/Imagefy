@@ -11,7 +11,7 @@ from tqdm import tqdm
 import tensorflow as tf
 import concurrent.futures
 from abc import ABC, abstractmethod
-from integration.utils.common import OUTPUT_DIR_PATH, CLUSTER_NAME_FORMAT, MAX_WORKERS
+from imagefy.utils.common import INCEPTION_RESNET_TENSORFLOW_WRAPER_OUTPUT, OUTPUT_DIR_PATH, CLUSTER_NAME_FORMAT, MAX_WORKERS, TOP_DEST
 
 class Image():
     """Image -> A Class That holds information about an Image."""
@@ -45,17 +45,18 @@ class Image():
         del self.data
         self.data = None
 
-    def flush(self):
+    def flush(self, prefix=None):
         """
         @remarks *Only if self.dst_dir was chosen the dst_path can be filled.
                  *Can only be used after IOWraper.merge_data() was invoked.
         """
         if self.dst_dir:
-            self.dst_path = os.path.join(self.dst_dir, self.basename)
+            if prefix is not None:
+                self.dst_path = os.path.join(self.dst_dir, f"{prefix}_{self.basename}")
+            else:
+                self.dst_path = os.path.join(self.dst_dir, self.basename)
         else:
             logging.error("Call IOWraper.merge_data() First")
-
-        #     x = np.asarray([ImageObj.data for ImageObj in self._data])
 
 class WraperOutput(ABC):
     """WraperOutput -> An Abstarct Class represnting a BaseWraper Return Value."""
@@ -68,6 +69,7 @@ class WraperOutput(ABC):
         super().__init__()
         self.n_clusters = n_clusters
         self.cluster_labels = cluster_labels
+        self.name = self.__class__.__name__
 
 class BaseLoader(ABC):
     """BaseLoader -> A BaseLoader Abstract class."""
@@ -106,6 +108,7 @@ class TensorLoader(BaseLoader):
         self.AUTOTUNE = tf.data.experimental.AUTOTUNE
         self.dataset = None
         self._image_names = np.asarray([image_name for image_name in glob.glob(self.dir_path)])
+
         self.model_name = model_name
         self.base_path = base_path
         if output_dir_path is None:
@@ -143,7 +146,7 @@ class TensorLoader(BaseLoader):
         options = tf.data.Options()
         options.experimental_optimization.autotune_buffers = True
         options.experimental_optimization.autotune_cpu_budget = True
-        dataset = tf.data.Dataset.list_files(os.path.join(self.output_dir_path, "*"), shuffle=False)
+        dataset = tf.data.Dataset.list_files(self.output_dir_path, shuffle=False)
         dataset = dataset.map(self._load_tensor_with_label, num_parallel_calls=self.AUTOTUNE)
         dataset = dataset.with_options(options)
         dataset = dataset.prefetch(self.AUTOTUNE)#.cache()   
@@ -182,6 +185,15 @@ class TensorLoader(BaseLoader):
         image = tf.reshape(image, [-1])
         return image, label, image_name
 
+    def create_inception_data(self):
+        """
+        """
+        inception_data = []
+        for image_path in glob.glob(self.output_dir_path):
+            inception_data.append(Image(src_path=image_path, data=None, hollow=True))
+
+        return inception_data
+
     def run(self, **kwrags):
         """
         @param kwargs: C{dict} -> for future needs.
@@ -195,19 +207,19 @@ class TensorLoader(BaseLoader):
             image_path = os.path.join(self.dir_path, image_name) 
             image_list.append(Image(src_path=image_path, data=None, hollow=True))
 
-        logging.debug(f"{len(image_list)} hollow images")
         return image_list
 
 class IOWraper():
     """IOWraper -> An Object which handles multithreaded IO Opartions."""
-    def __init__(self, data: list, wraper_output: WraperOutput, model_name: str, base_path: str, **kwargs: dict):
+    def __init__(self, kmeans_data: list, wraper_output: WraperOutput, model_name: str, base_path: str, **kwargs: dict):
         """
-        @param data: C{list} -> A List of Image Objects.
+        @param kmeans_data: C{list} -> A List of Image Objects.
         @param wraper_output: C{WraperOutput} -> The Output returned by on of the @BaseWrapers.
         @remarks *@self.wraper_output can be any of the inherited object from WraperOutput.
                  *@self._clean is invoked on __init__, it will remove all the old cluster output directories.    
         """
-        self.data = data
+        self.kmeans_data = kmeans_data
+        self.inception_data = None
         self.wraper_output = wraper_output
         self.model_name = model_name
         self.base_path = base_path
@@ -222,7 +234,7 @@ class IOWraper():
         for _dir in os.listdir(OUTPUT_DIR_PATH):
            shutil.rmtree(os.path.join(OUTPUT_DIR_PATH, _dir))
 
-    def merge_data(self):
+    def merge_kmeans_data(self):
         """
         @remarks *will use the data from self.wraper_output (@WraperOutput object) to set the Image.dst_fir & Image.cluster_n.
                  *This function must be called befor @IOWraper.move_data().
@@ -232,12 +244,27 @@ class IOWraper():
                   IOWraper.move_data()
         """
         logging.debug("Merging Images & WraperOutput")
-        for (image, cluster_label) in zip(self.data, self.wraper_output.cluster_labels):
+        for (image, cluster_label) in zip(self.kmeans_data, self.wraper_output.cluster_labels):
             image.dst_dir = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, CLUSTER_NAME_FORMAT.format(cluster_label))
             image.cluster_n = int(cluster_label)
             # image.free() -> Only free if You dont want to use Tensorboard.
             image.flush()
-            # logging.debug(image)
+
+    def move_kmeans_data(self):
+        """
+        @remarks *Will Copy The Images from Image.src_path to Image.dst_path Using shutil & ThreadPoolExecutor(@MAX_WORKERS)
+                 *@IOWraper.merge_data MUST be invoked befor this function or a RuntimeError will be raised.
+                 *Once shutil.copy is invoked with image.dst_path = None. No Warning is given at this stage.
+        """
+        logging.debug("Moving Data")
+        with tqdm(total=len(self.kmeans_data)) as pbar:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+                future_to_file_moved = {executor.submit(shutil.copy, image.src_path, image.dst_path): image for image in self.kmeans_data if image.src_path is not None and image.dst_path is not None}
+                for future in concurrent.futures.as_completed(future_to_file_moved):
+                        result = future.result()
+                        pbar.update(1)
+                        
+        logging.debug("Finished Moving data")
 
     def create_output_dirs(self):
         """
@@ -254,99 +281,44 @@ class IOWraper():
                 dir_path = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, f"cluster_{dir_index}")
                 future_to_dir[executor.submit(os.makedirs, dir_path)] = dir_index
 
-            dir_path = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, "output")
+            dir_path = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, TOP_DEST)
             future_to_dir[executor.submit(os.makedirs, dir_path)] = None 
 
             for future in concurrent.futures.as_completed(future_to_dir):
                     result = future.result()
-
         logging.debug("Finished Creating Output Directories")
 
-    def move_data(self):
-        """
-        @remarks *Will Copy The Images from Image.src_path to Image.dst_path Using shutil & ThreadPoolExecutor(@MAX_WORKERS)
-                 *@IOWraper.merge_data MUST be invoked befor this function or a RuntimeError will be raised.
-                 *Once shutil.copy is invoked with image.dst_path = None. No Warning is given at this stage.
-        """
-        logging.debug("Moving Data")
-        with tqdm(total=len(self.data)) as pbar:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-                future_to_file_moved = {executor.submit(shutil.copy, image.src_path, image.dst_path): image for image in self.data if image.src_path is not None and image.dst_path is not None}
-                for future in concurrent.futures.as_completed(future_to_file_moved):
-                        result = future.result()
-                        pbar.update(1)
-                        
-        logging.debug("Finished Moving data")
-
-class TensorIOWraper():
-    """TensorIOWraper -> An Object which handles multithreaded Tensor IO Opartions."""
-    def __init__(self, data: list, wraper_output: WraperOutput, model_name: str, base_path: str, **kwargs: dict):
-        """
-        @param data: C{list} -> A List of Image Objects.
-        @param wraper_output: C{WraperOutput} -> The Output returned by on of the @BaseWrapers.
-        @remarks *@self.wraper_output can be any of the inherited object from WraperOutput.
-                 *@self._clean is invoked on __init__, it will remove all the old cluster output directories.    
-        """
-        self.data = data
+    def set_inception_data(self, inception_data, wraper_output):
+        self.inception_data = inception_data
         self.wraper_output = wraper_output
-        self.model_name = model_name
-        self.base_path = base_path
-        # self._clean() DONT USE
 
+    def merge_inception_data(self, top=3):
+        if self.inception_data is None or self.wraper_output.name != INCEPTION_RESNET_TENSORFLOW_WRAPER_OUTPUT:
+            raise RuntimeError("inception data is None or wraper_output is the kmeans one, use IOWraper.set_inception_data(...) to set these varibles")
 
-    def merge_data(self):
-        """
-        @remarks *will use the data from self.wraper_output (@WraperOutput object) to set the Image.dst_fir & Image.cluster_n.
-                 *This function must be called befor @IOWraper.move_data().
-                 *A usual use case will look like this:
-                  IOWraper.create_output_dirs()
-                  IOWraper.merge_data()
-                  IOWraper.move_data()
-        """
-        logging.debug("Merging Images & WraperOutput")
-        for (image, cluster_label) in zip(self.data, self.wraper_output.cluster_labels):
-            image.dst_dir = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, CLUSTER_NAME_FORMAT.format(cluster_label))
-            image.cluster_n = int(cluster_label)
+        logging.debug("Merging Inception data & WraperOutput")
+        for (image, predictor_output) in zip(self.inception_data, self.wraper_output.top(k=top)):
+            image.dst_dir = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, TOP_DEST)
+            image.cluster_n = int(predictor_output._label)
+            if predictor_output.top:
+                image.top = True
             # image.free() -> Only free if You dont want to use Tensorboard.
-            image.flush()
-            # logging.debug(image)
+            image.flush(prefix=predictor_output.label)
 
-    def create_output_dirs(self):
-        """
-        @remarks *A simple Function that will Create multiple directories using multiple Workers.
-                 *ThreadPoolExecutor(@MAX_WORKERS).
-                 *Might not be neaded for a small amount of directories.
-                 *@IOWraper.move_data() can't be invoked befor this function, not output directories will exist.
-                 *If an error acourd it will be loged & raised.
-        """
-        logging.debug("Creating Output Directories")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            future_to_dir = {}
-            for dir_index in range(self.wraper_output.n_clusters):
-                dir_path = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, f"cluster_{dir_index}")
-                future_to_dir[executor.submit(os.makedirs, dir_path)] = dir_index
-
-            dir_path = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, "output")
-            future_to_dir[executor.submit(os.makedirs, dir_path)] = None 
-
-            for future in concurrent.futures.as_completed(future_to_dir):
-                    result = future.result()
-
+    def move_inception_data(self):
         logging.debug("Finished Creating Output Directories")
 
-    def move_data(self):
         """
         @remarks *Will Copy The Images from Image.src_path to Image.dst_path Using shutil & ThreadPoolExecutor(@MAX_WORKERS)
                  *@IOWraper.merge_data MUST be invoked befor this function or a RuntimeError will be raised.
                  *Once shutil.copy is invoked with image.dst_path = None. No Warning is given at this stage.
         """
         logging.debug("Moving Data")
-        with tqdm(total=len(self.data)) as pbar:
+        with tqdm(total=len(self.kmeans_data)) as pbar:
             with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-                future_to_file_moved = {executor.submit(shutil.copy, image.src_path, image.dst_path): image for image in self.data if image.src_path is not None and image.dst_path is not None}
+                future_to_file_moved = {executor.submit(shutil.copy, image.src_path, image.dst_path): image for image in self.inception_data if image.src_path is not None and image.dst_path is not None and image.top}
                 for future in concurrent.futures.as_completed(future_to_file_moved):
                         result = future.result()
                         pbar.update(1)
                         
         logging.debug("Finished Moving data")
-
