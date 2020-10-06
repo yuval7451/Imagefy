@@ -5,12 +5,10 @@ import tensorflow as tf
 from tensorflow.python.training import training_util
 from tensorflow.python.training.basic_session_run_hooks import SecondOrStepTimer
 from tensorflow.python.training.session_run_hook import SessionRunHook, SessionRunArgs
-# from tensorflow.python import debug as tf_debug
-# from tensorboard.plugins.beholder import BeholderHook
+
 
 class Config():
-    def __init__(self, model_dir : str, base_model_dir):
-        self.model_dir = model_dir
+    def __init__(self, base_model_dir):
         self.base_model_dir = base_model_dir
 
     def _gpu_options(self):

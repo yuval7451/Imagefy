@@ -7,18 +7,17 @@ import logging
 import numpy as np
 from integration.utils.argument_parser import arg_parser
 from integration.suits.intergration_suit import IntergrationSuit
-# from integration.utils.enum import Enum
-#### Functions ####
 
+#### Functions ####
 def main():
     start = time.time()
-    t = datetime.datetime.now() #.strftime("%Y%m%d-%H%M%S")
+    t = datetime.datetime.now() 
     logging.info(f"Starting Main at {t}")
     args = arg_parser()
     suit = IntergrationSuit(**vars(args))
     suit.run()
     end  = time.time() - start
-    t = datetime.datetime.now() #.strftime("%Y%m%d-%H%M%S")
+    t = datetime.datetime.now()
     logging.info(f"Finished Running Main at {t}")
     logging.info(f"Program took {end} Seconds to run")
 

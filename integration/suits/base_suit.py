@@ -2,12 +2,12 @@
 # Author: Yuval Kaneti⭐
 
 #### Imports ####
+import os
 import logging
+import datetime
 from abc import ABC, abstractclassmethod
 from integration.wrapers.mini_batch_kmeans_tensorflow_wraper import MiniBatchKmeansTensorflowWraper
-from integration.wrapers.kmeans_tensorflow_wraper import KmeansTensorflowWraper 
-from integration.utils.data_utils import DataLoader, TensorLoader
-from integration.utils.common import KMEANS_DEST, MINI_KMEAND_DEST, DATA_LOADER_DEST, TENSOR_LADER_DEST
+from integration.utils.common import BASE_PATH_DEST, LOG_DIR, MINI_KMEAND_DEST, WRAPER_PARAM
 
 class BaseSuit(ABC):
     """BaseSuit -> Some Kind of Class that controls everything."""
@@ -18,11 +18,12 @@ class BaseSuit(ABC):
         self.kwargs = kwargs
         # Asign Paramete
         self._wrapers = self._get_wrapers()
-        self._loaders = self._get_loaders()
+        assert self.kwargs.get(WRAPER_PARAM) != None
         self._wraper = None
         self._loader = None
         self.WraperOutput = None
         self.IOHandler = None
+        (self.model_name, self.base_path, self.base_model_dir) = self._set_model_directories()
 
     @abstractclassmethod
     def run(self):
@@ -34,25 +35,15 @@ class BaseSuit(ABC):
     def _get_wrapers(self):
         _wrapers = {
             MINI_KMEAND_DEST: MiniBatchKmeansTensorflowWraper,
-            KMEANS_DEST: KmeansTensorflowWraper,
         }
         logging.debug(f"Loading {len(_wrapers)} Wrapers")
         return _wrapers
-        # _wrapers_path = self._get_wrapers_path()
-        # module = __import__(module_name)
-        # my_class = getattr(module, class_name)
-        # instance = my_class()
 
-    def _get_loaders(self):
-        _loaders = {
-            TENSOR_LADER_DEST: TensorLoader,
-            DATA_LOADER_DEST: DataLoader,
-        }
-        logging.debug(f"Loading {len(_loaders)} Loaders")
-        return _loaders
-
-    # def _get_wrapers_path(self):
-    #     _wrapers_path = [os.path.join(WRAPERS_DIR, wraper).replace("\\", ".") for wraper in os.listdir(WRAPERS_DIR) if wraper.endswith(WRAPER_PREFIX)]
-    #     logging.info(f"Found {len(_wrapers_path)} Wrapers")
-    #     logging.debug(str(_wrapers_path))
-    #     return _wrapers_path
+    def _set_model_directories(self):
+        wraper_name = self._wrapers.get(self.kwargs.get(WRAPER_PARAM)).__name__
+        base_path = self.kwargs.get(BASE_PATH_DEST)
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
+        model_name = f"{wraper_name}-{current_time}" 
+        base_path = base_path
+        base_model_dir = os.path.join(base_path, LOG_DIR, model_name)
+        return (model_name, base_path, base_model_dir)

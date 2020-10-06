@@ -159,7 +159,6 @@ def inception_input_fn(output_dir_path):
     options.experimental_optimization.autotune_cpu_budget = True
     dataset = tf.data.Dataset.list_files(os.path.join(output_dir_path, "*", "*"), shuffle=False)
     dataset = dataset.map(_load_tensor_with_label, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    # dataset = dataset.apply(tf.contrib.data.prefetch_to_device('/device:GPU:0'))
     dataset = dataset.with_options(options)
     dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)#.cache()   
     return dataset 

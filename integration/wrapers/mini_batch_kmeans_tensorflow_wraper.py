@@ -1,8 +1,5 @@
 #! /usr/bin/env python3
 """
-Code Taken From: https://github.com/tensorflow/tensorflow/issues/20942 @kevintrankt commented on Jul 23, 2018
-Code Taken from: https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html
-Wiki: Silhouette clustering -> https://en.wikipedia.org/wiki/Silhouette_(clustering)
 Author: Yuval Kaneti⭐
 """
 
@@ -11,13 +8,13 @@ import os;  os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import logging
 
 import tensorflow as tf
+from integration.suits.config import Config
 from integration.wrapers.base_wraper import BaseWraper
 from integration.utils.data_utils import  WraperOutput
-from integration.suits.config import Config
 
 class MiniBatchKmeansTensorflowWraper(BaseWraper):
     """MiniBatchKmeansTensorflowWraper -> An implemntion of Minibatch Kmeans in Tensorflow."""
-    def __init__(self, num_epochs: int, num_clusters: int, batch_size: int, save: bool, **kwargs: dict):
+    def __init__(self, num_epochs: int, num_clusters: int, batch_size: int, **kwargs: dict):
         """
         @param data: C{list} -> a list of Image Objects.
         @param num_epochs: C{int} -> The number of Training epochs.
@@ -28,9 +25,8 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
         self.num_epochs = num_epochs
         self.num_clusters = num_clusters
         self.batch_size = batch_size
-        self._save = save if not save else False; logging.warn(f"{self.name}.Save() is not implemnted yet.`")
         self.wraper_output = None
-        self.config = Config(self.model_dir, self.base_model_dir)
+        self.config = Config(self.base_model_dir)
         
     def run(self):
         """
@@ -43,10 +39,11 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
             config=self.config.get_run_config(),
             # mini_batch_steps_per_iteration = 10,
         )
+
         self._train(hooks=self.config.get_hooks()) 
         self.wraper_output = self._transform()
         if self._use_tensorboard:
-            self._tensorboard(dtype=self._loader.dtype, batch_size=self.batch_size)
+            self._tensorboard(batch_size=self.batch_size)
         
         return self.wraper_output
 
