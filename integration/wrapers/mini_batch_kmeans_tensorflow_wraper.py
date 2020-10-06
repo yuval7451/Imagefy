@@ -46,7 +46,7 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
         self._train(hooks=self.config.get_hooks()) 
         self.wraper_output = self._transform()
         if self._use_tensorboard:
-            self._tensorboard()
+            self._tensorboard(dtype=self._loader.dtype, batch_size=self.batch_size)
         
         return self.wraper_output
 
@@ -96,10 +96,6 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
         logging.info(f"loading model from {path}")
         self.cluster = tf.saved_model.load(path)
     
-    def _tensorboard(self):
-        if self._loader.dtype is tf.data.Dataset:        
-            logging.warn("Tensorboard is in BETA with Tensorload")
-        super()._tensorboard(dtype=self._loader.dtype, batch_size=self.batch_size)
 
 class MiniBatchKmeansWraperOutput(WraperOutput):
     """MiniBatchKmeansWraperOutput -> A WraperOutput Object for MiniBatchKemansTensorflowWraper."""

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # Author: Yuval Kaneti
 
-import os
-
+import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import tensorflow as tf
 
 #### CONSTANTS ####
 WEIGHTS_FOLDER_PATH = "D:\\Datasets\\Imagefy\\weights"
@@ -50,6 +50,10 @@ Y_PARAM = 'y'
 WRAPER_PREFIX = '_tensorflow_wraper.py'
 TENSORBOARD_NAME_PARAM = None
 
+MINI_BATCH_KMEANS_TENSORFLOW_WRAPER = "MiniBatchKmeansTensorflowWraper"
+KMEANS_TENSORFLOW_WRAPER = "KmeansTensorflowWraper"
+INCEPTION_RESNET_TENSORFLOW_WRAPER = "InceptionResnetWraper"
+DATASET_DTYPE = tf.data.Dataset
 
 # NUM_EPOCHS_PARAM = 'NUM_EPOCHS'
 # NUM_CLUSTERS_PARAM = 'num_clusters'

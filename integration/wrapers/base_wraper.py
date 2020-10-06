@@ -8,7 +8,8 @@ import datetime
 import logging
 import numpy as np
 import tensorflow as tf; tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-from integration.utils.common import TENSORBOARD_LOG_DIR, LOG_DIR, MODEL_LOG_DIR
+from integration.utils.common import TENSORBOARD_LOG_DIR, LOG_DIR, MODEL_LOG_DIR, MINI_BATCH_KMEANS_TENSORFLOW_WRAPER, \
+    KMEANS_TENSORFLOW_WRAPER, INCEPTION_RESNET_TENSORFLOW_WRAPER
 from integration.utils.data_utils import BaseLoader
 from integration.plugins.tensorboard import TensorboardWraper, Tensorboard
 from abc import ABC, abstractmethod
@@ -28,7 +29,13 @@ class BaseWraper(ABC):
         logging.basicConfig(filename=f"{os.path.join(self.base_model_dir, 'session.log')}", filemode='w')
         self._kwrags = kwrags
         self._loader = loader
-        self._input_fn = self._loader.run if self._loader.dtype is tf.data.Dataset else self.input_fn
+        self._input_functions = {
+            MINI_BATCH_KMEANS_TENSORFLOW_WRAPER: self._loader.mini_batch_kmeans_input_fn,
+            KMEANS_TENSORFLOW_WRAPER: self._loader.mini_batch_kmeans_input_fn, # None?
+            INCEPTION_RESNET_TENSORFLOW_WRAPER: self._loader.inception_input_fn,
+        }
+        # self._input_fn = self._loader.run if self._loader.dtype is tf.data.Dataset else self.input_fn
+        self._input_fn = self._input_functions.get(self.name)
         self.wraper_output = None
         logging.debug(f"Initilazing {self.name}")
 

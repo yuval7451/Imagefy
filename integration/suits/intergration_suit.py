@@ -2,12 +2,12 @@
 # Author: Yuval Kaneti⭐
 
 #### Imports ####
-import os;  os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import logging
 import tensorflow as tf
 from integration.suits.base_suit import BaseSuit
 from integration.utils.data_utils import IOWraper
-from integration.utils.common import  BASE_PATH_DEST, OUTPUT_DIR_PATH, DATA_PARAM, VERBOSE_DEST, WRAPER_PARAM, LOADER_DEST
+from integration.utils.common import  BASE_PATH_DEST, OUTPUT_DIR_PATH, DATA_PARAM, VERBOSE_DEST, WRAPER_PARAM, LOADER_DEST, DATASET_DTYPE
 
 class IntergrationSuit(BaseSuit):
     """IntergrationSuit -> Some Kind of Class that controls everything."""
@@ -33,7 +33,7 @@ class IntergrationSuit(BaseSuit):
         # Load Data
         loader_name = self.kwargs.get(LOADER_DEST)
         self._loader = self._loaders.get(loader_name)(**self.kwargs)   #self._loaders[self.kwargs[LOADER_DEST]](**self.kwargs)
-        self.data = self._loader.hollow_images() if self._loader.dtype is tf.data.Dataset else self._loader.run()
+        self.data = self._loader.hollow_images() if self._loader.dtype is DATASET_DTYPE else self._loader.run()
         self.kwargs.update({DATA_PARAM: self.data, LOADER_DEST: self._loader})
        
         wraper_name = self.kwargs.get(WRAPER_PARAM)

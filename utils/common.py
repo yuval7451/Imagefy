@@ -3,7 +3,7 @@
 
 #### CONSTANTS ####
 DATA_FOLDER_PATH = "D:\\Datasets\\Imagefy"
-WEIGHTS_FOLDER_PATH = "D:\\Datasets\\Imagefy\\weights"
+WEIGHTS_FOLDER_PATH = "D:\\Imagefy\\resources\\weights"
 GOPRO_IMAGES_FOLDER = "gopro_images"
 TEST_IMAGES_FOLDER = "test_images"
 MOBILNET_WEIGHTS = "mobilenet_weights.h5"

@@ -1,8 +1,9 @@
+
 #https://github.com/titu1994/neural-image-assessment/blob/master/evaluate_mobilenet.py
 import numpy as np
 import argparse
 # from path import Path
-
+import os
 from keras.models import Model
 from keras.layers import Dense, Dropout
 from keras.applications.mobilenet import MobileNet

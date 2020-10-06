@@ -29,7 +29,6 @@ class TensorboardWraper(BaseLoader):
     def run(self):
         # iterator = self.dataset.make_one_shot_iterator()
         iterator = tf.compat.v1.data.make_one_shot_iterator(self.dataset)
-
         next_element = iterator.get_next()
         with tf.compat.v1.Session() as sess:
             try:

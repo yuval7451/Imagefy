@@ -156,7 +156,7 @@ class DataLoader(BaseLoader):
 
 class TensorLoader(BaseLoader):
     """TensorLoader ."""
-    def __init__(self, **kwargs : dict):
+    def __init__(self, model_name: str, base_path: str, **kwargs : dict):
         """
         @param BaseLoader.dir_path: C{str} -> The dir to load the pictures from.
         @param BaseLoader.image_size: C{int} -> The size the images should be resized to befor flattening them [size, size, 3] -> [size * size * 3]
@@ -170,9 +170,12 @@ class TensorLoader(BaseLoader):
         self._image_names = np.asarray([image_name for image_name in glob.glob(self.dir_path)])
         # self.tensorboard_dataset = self._tensorboard_dataset()
         # self.iterator = None
-    
+        self.model_name = model_name
+        self.base_path = base_path
+        self.output_dir_path = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, "*")
+
     @tf.function
-    def run(self, batch_size: int, shuffle : bool, num_epochs : int, **kwrags):
+    def mini_batch_kmeans_input_fn(self, batch_size: int, shuffle : bool, num_epochs : int, **kwrags):
         """
         """
         options = tf.data.Options()
@@ -180,7 +183,6 @@ class TensorLoader(BaseLoader):
         options.experimental_optimization.autotune_cpu_budget = True
         self.dataset = tf.data.Dataset.list_files(self.dir_path, shuffle=shuffle)
         # self.dataset = tf.data.Dataset.list_files(self._image_names, shuffle=shuffle) 
-
         self.dataset = self.dataset.map(self._load_tensor, num_parallel_calls=self.AUTOTUNE).repeat(num_epochs)
         self.dataset = self.dataset.with_options(options)
         if batch_size is not None:
@@ -189,17 +191,72 @@ class TensorLoader(BaseLoader):
             self.dataset = self.dataset.prefetch(self.AUTOTUNE).cache()   
         # self.iterator = self.dataset.make_one_shot_iterator()
         return self.dataset   
-        
+    
     @tf.function
-    def _load_tensor(self, image_path : str):
+    def inception_input_fn(self):    
+        options = tf.data.Options()
+        options.experimental_optimization.autotune_buffers = True
+        options.experimental_optimization.autotune_cpu_budget = True
+        self.dataset = tf.data.Dataset.list_files(os.path.join(self.output_dir_path, "*", "*"), shuffle=False)
+        self.dataset = self.dataset.map(self._load_tensor_with_label, num_parallel_calls=self.AUTOTUNE)
+        self.dataset = self.dataset.with_options(options)
+        self.dataset = self.dataset.prefetch(self.AUTOTUNE).cache()   
+        return self.dataset 
+
+    @tf.function
+    def _inception_input_fn(self):    
+        options = tf.data.Options()
+        options.experimental_optimization.autotune_buffers = True
+        options.experimental_optimization.autotune_cpu_budget = True
+        self.dataset = tf.data.Dataset.list_files(self.output_dir_path, shuffle=False)
+        self.dataset = self.dataset.map(self._load_folder, num_parallel_calls=self.AUTOTUNE)
+        self.dataset = self.dataset.with_options(options)
+        self.dataset = self.dataset.prefetch(self.AUTOTUNE).cache()   
+        return self.dataset   
+
+    @tf.function
+    def _load_tensor(self, image_path: str):
         """
-        """
+        """   
         image = tf.io.read_file(image_path)
         image = tf.image.decode_jpeg(image)
         image = tf.image.convert_image_dtype(image, tf.float32)
         image = tf.image.resize(image, size=[self.image_size, self.image_size])
         image = tf.reshape(image, [-1])
-        return image 
+        return image
+
+
+    @tf.function
+    def _load_tensor_with_label(self, image_path: str):
+        """
+        """   
+        image = tf.io.read_file(image_path)
+        label = tf.strings.split(image_path, os.sep)[-2]
+        image = tf.image.decode_jpeg(image)
+        image = tf.image.convert_image_dtype(image, tf.float32)
+        image = tf.image.resize(image, size=[self.image_size, self.image_size])
+        image = tf.reshape(image, [-1])
+        return image, label
+
+    @tf.function
+    def _load_folder(self, folder_path: str):
+        self.dataset = tf.data.Dataset.list_files(folder_path + "\\*", shuffle=False)
+        self.dataset = self.dataset.map(self._load_tensor, num_parallel_calls=self.AUTOTUNE)
+        self.dataset = self.dataset.prefetch(self.AUTOTUNE).cache()   
+        return self.dataset   
+
+    def run(self):
+        # here only becaus this is a 'Loader'
+        pass
+    # @tf.function
+    # def load_tensor_labeled(self, image_path: str):
+    #     image = tf.io.read_file(image_path)
+    #     image = tf.image.decode_jpeg(image)
+    #     image = tf.image.convert_image_dtype(image, tf.float32)
+    #     image = tf.image.resize(image, size=[self.image_size, self.image_size])
+    #     image = tf.reshape(image, [-1])
+    #     label = tf.strings.split(image_path, os.sep)[-2]
+    #     return image, label
 
     def hollow_images(self):
         """
