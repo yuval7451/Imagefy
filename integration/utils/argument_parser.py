@@ -3,7 +3,7 @@ import os
 import argparse
 from integration.utils.common import IMAGE_SIZE, MINI_KMEANS_NUM_EPOCHS, EPOCHS_DEST, DIR_DEST, VERBOSE_DEST, \
     SIZE_DEST, TENSORBOARD_DEST, MINI_KMEAND_DEST, NUM_CLUSTERS_DEST, BATCH_SIZE_DEST, \
-        MINI_KMEANS_BATCH_SIZE, BASE_PATH_DEST
+        MINI_KMEANS_BATCH_SIZE, BASE_PATH_DEST, INCEPTION_RESNET_DEST
 
 def arg_parser():
     # create the top-level main_parser
@@ -32,6 +32,7 @@ def arg_parser():
 
     #Sub Parsers
     mini_batch_kmeans_sub_parser(sub_parsers=sub_parsers)
+    inception_resnet_sub_parser(sub_parsers=sub_parsers)
     args = main_parser.parse_args()
     return args
 
@@ -52,4 +53,10 @@ def mini_batch_kmeans_sub_parser(sub_parsers):
 
     mini_kmeans_parser.set_defaults(wraper=MINI_KMEAND_DEST)
 
+def inception_resnet_sub_parser(sub_parsers):
+    inception_resnet_parser = sub_parsers.add_parser(INCEPTION_RESNET_DEST, help='Arguments for the Inception Resnet V2 Wraper', add_help=False)
 
+    # inception_resnet_parser.add_argument('-','--num_clusters', action='store', type=int, 
+    #                     required=True, help="The number of clusters in Mini Batch Kmeans", dest=NUM_CLUSTERS_DEST)
+
+    inception_resnet_parser.set_defaults(wraper=INCEPTION_RESNET_DEST)

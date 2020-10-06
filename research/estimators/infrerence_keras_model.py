@@ -109,27 +109,37 @@ def inference():
                 std = std_score(y_predicted)
                 print(f"NIMA Score : {mean}, {std}")
                     
-# @tf.function
 def inference_dataset(dataset):
     results = {} 
-    # with tf.device('/device:GPU:1'):    
     iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
     next_element = iterator.get_next()
     full_model_dir = "D:\\Imagefy\\resources\\models\\InceptionResNetV2\\inference\\1601923417"
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=False, log_device_placement=True)) as sess:
+    gpu_options = tf.compat.v1.GPUOptions(
+        allow_growth=True,
+        force_gpu_compatible=True,
+        per_process_gpu_memory_fraction=0.9,
+    )
+    config_proto = tf.compat.v1.ConfigProto(
+        gpu_options=gpu_options,
+        allow_soft_placement=True,
+        log_device_placement=False,
+    )
+    
+    with tf.compat.v1.Session(config=config_proto) as sess:
         try:
-            tf.saved_model.loader.load(sess, [tf.saved_model.tag_constants.SERVING], full_model_dir)
+        # imported = tf.saved_model.loader.load(sess, [tf.saved_model.tag_constants.SERVING], full_model_dir)
             predictor = tf.contrib.predictor.from_saved_model(full_model_dir)
             while True:
-                image, label, image_name = sess.run(next_element)
-                label = label.decode()  
-                image_name = image_name.decode() 
-                print(label, image_name)
-                image = image.flatten().tolist()
-                model_input = tf.train.Example(features=tf.train.Features( feature={"input_1": tf.train.Feature(float_list=tf.train.FloatList(value=image)) })) 
-                model_input = model_input.SerializeToString()
-                output_dict = predictor({"predictor_inputs":[model_input]})
-                y_predicted = output_dict["dense"][0]
+                with tf.device('/device:GPU:0'):    
+                    image, label, image_name = sess.run(next_element)
+                    label = label.decode()  
+                    image_name = image_name.decode() 
+                    print(label, image_name)
+                    image = image.flatten().tolist()
+                    model_input = tf.train.Example(features=tf.train.Features( feature={"input_1": tf.train.Feature(float_list=tf.train.FloatList(value=image)) })) 
+                    model_input = model_input.SerializeToString()
+                    output_dict = predictor({"predictor_inputs":[model_input]})
+                    y_predicted = output_dict["dense"][0]
                 mean = mean_score(y_predicted)
                 std = std_score(y_predicted)
                 print(f"NIMA Score : {mean}, {std}")
@@ -143,13 +153,6 @@ def inference_dataset(dataset):
 
     return results
 
-def get_top_k(results, k=3):
-    for label, result_arr in results.items():
-        sorted_scores = sorted(result_arr, key=lambda x: list(x.values())[0] , reverse=True)
-        top_scores = sorted_scores[:k]
-        for score in top_scores:
-            image_name = None
-            print(label ,image_name, score)
 
 # Dataset API Didnt Use
 @tf.function
@@ -163,7 +166,6 @@ def inception_input_fn(output_dir_path):
     dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)#.cache()   
     return dataset 
     
-
 @tf.function
 def _load_tensor_with_label(image_path: str):
     """
@@ -192,9 +194,9 @@ def main():
     # Normal infrence
     # inference()
     # Dataset API Infrence
-    dataset = inception_input_fn("D:\\Imagefy\\results\\output\\MiniBatchKmeansTensorflowWraper-2020-10-05--16-10-06")
+    dataset = inception_input_fn("D:\\Imagefy\\results\\output\\KmeansTensorflowWraper-2020-10-06--15-12-47")
     results = inference_dataset(dataset)
-    get_top_k(results, k=3)
-
+    # get_top_k(results, k=3)
+    print(results)
 if __name__ == '__main__':
     main()

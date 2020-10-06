@@ -7,7 +7,8 @@ import logging
 import datetime
 from abc import ABC, abstractclassmethod
 from integration.wrapers.mini_batch_kmeans_tensorflow_wraper import MiniBatchKmeansTensorflowWraper
-from integration.utils.common import BASE_PATH_DEST, LOG_DIR, MINI_KMEAND_DEST, WRAPER_PARAM
+from integration.wrapers.inception_resnet_tensorflow_wraper import InceptionResnetTensorflowWraper
+from integration.utils.common import BASE_PATH_DEST, LOG_DIR, MINI_KMEAND_DEST, WRAPER_PARAM, INCEPTION_RESNET_DEST
 
 class BaseSuit(ABC):
     """BaseSuit -> Some Kind of Class that controls everything."""
@@ -37,6 +38,7 @@ class BaseSuit(ABC):
     def _get_wrapers(self):
         _wrapers = {
             MINI_KMEAND_DEST: MiniBatchKmeansTensorflowWraper,
+            INCEPTION_RESNET_DEST: InceptionResnetTensorflowWraper,
         }
         logging.debug(f"Loading {len(_wrapers)} Wrapers")
         return _wrapers

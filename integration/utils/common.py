@@ -20,6 +20,7 @@ VERBOSE_DEST = 'verbose'
 SIZE_DEST = 'image_size'
 TENSORBOARD_DEST = 'tensorboard'
 MINI_KMEAND_DEST = 'mini_kmeans' 
+INCEPTION_RESNET_DEST = 'inception'
 EPOCHS_DEST = 'num_epochs'
 BATCH_SIZE_DEST = 'batch_size'
 NUM_CLUSTERS_DEST = 'num_clusters'
@@ -45,4 +46,8 @@ WRAPER_PREFIX = '_tensorflow_wraper.py'
 TENSORBOARD_NAME_PARAM = None
 
 MINI_BATCH_KMEANS_TENSORFLOW_WRAPER = "MiniBatchKmeansTensorflowWraper"
-INCEPTION_RESNET_TENSORFLOW_WRAPER = "InceptionResnetWraper"
+INCEPTION_RESNET_TENSORFLOW_WRAPER = "InceptionResnetTensorflowWraper"
+INCEPTION_RESNET_INFERENCE_INPUT = "input_1"
+PREDICTOR_INFERENCE_INPUTS = "predictor_inputs"
+INCEPTION_RESNET_INFERENCE_DENSE = "dense"
+OUTPUT_DIR_PATH_PARAM = 'output_dir_path'
