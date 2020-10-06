@@ -2,9 +2,8 @@
 # Author: Yuval Kaneti⭐
 
 #### Imports ####
-import time, datetime
 import logging
-import numpy as np
+import time, datetime
 from imagefy.utils.argument_parser import arg_parser
 from imagefy.suits.intergration_suit import IntergrationSuit
 

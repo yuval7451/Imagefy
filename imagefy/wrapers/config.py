@@ -7,7 +7,7 @@ from tensorflow.python.training.basic_session_run_hooks import SecondOrStepTimer
 from tensorflow.python.training.session_run_hook import SessionRunHook, SessionRunArgs
 
 
-class Config():
+class KmeansConfig():
     def __init__(self, base_model_dir):
         self.base_model_dir = base_model_dir
 
@@ -103,3 +103,14 @@ class MetadataHook(SessionRunHook):
 
     def end(self, session):
         self._writer.close()
+
+def InceptionConfig():
+    return tf.compat.v1.ConfigProto(
+        gpu_options=tf.compat.v1.GPUOptions(
+                allow_growth=True,
+                force_gpu_compatible=True,
+                per_process_gpu_memory_fraction=0.9),
+            allow_soft_placement=True,
+            log_device_placement=False
+        )
+        

@@ -12,7 +12,7 @@ from imagefy.wrapers.base_wraper import BaseWraper
 from imagefy.utils.data_utils import  WraperOutput
 from imagefy.utils.score_utils import mean_score, std_score
 from imagefy.utils.common import IFERENCE_MODEL_DIR, INCEPTION_RESNET_INFERENCE_INPUT, PREDICTOR_INFERENCE_INPUTS, INCEPTION_RESNET_INFERENCE_DENSE
-
+from imagefy.wrapers.config import InceptionConfig
 
 class InceptionResnetTensorflowWraper(BaseWraper):
     """InceptionResnetTensorflowWraper -> An implemntion of InceptionResnetV2 in Tensorflow."""
@@ -27,16 +27,7 @@ class InceptionResnetTensorflowWraper(BaseWraper):
         super().__init__(**kwargs) 
         self.iterator = tf.compat.v1.data.make_one_shot_iterator(self._input_fn())
         self.inference_model_dir = IFERENCE_MODEL_DIR # FIXME?
-        self.config = tf.compat.v1.ConfigProto(
-            gpu_options=tf.compat.v1.GPUOptions(
-                    allow_growth=True,
-                    force_gpu_compatible=True,
-                    per_process_gpu_memory_fraction=0.9,
-                    ),
-            allow_soft_placement=True,
-            log_device_placement=False,
-        )
-        
+        self.config = InceptionConfig()
     def run(self):
         """
         @remarks *This is where the action starts.
@@ -52,6 +43,8 @@ class InceptionResnetTensorflowWraper(BaseWraper):
 
     def _predict(self):
         """
+        @return C{InceptionResnetTensorflowWraperOutput} -> the Predicted output, will be used for IOWraper.
+        @remarks *Loads the inference model and predicts images score.
         """
         predictor_output_list = []
         next_element = self.iterator.get_next()
@@ -74,7 +67,6 @@ class InceptionResnetTensorflowWraper(BaseWraper):
                     
                     score = mean_score(y_predicted)
                     predictor_output = PredictorOutput(label=label, image_name=image_name, score=score, index=len(predictor_output_list))
-                    logging.info(predictor_output)
                     predictor_output_list.append(predictor_output)
                    
             except tf.errors.OutOfRangeError:
@@ -83,9 +75,14 @@ class InceptionResnetTensorflowWraper(BaseWraper):
         return InceptionResnetTensorflowWraperOutput(predictor_output_list=predictor_output_list)
 
     def pre_process_data(self, image: np.ndarray, label: bytes, image_name: bytes):
+        """
+        @param image: C{np.ndarray} -> The Image data .
+        @param label: C{bytes} -> The image source cluster.
+        @param image_name: C{bytes} -> The image name.
+        @return C{tuple} -> the pre proccesed data
+        """
         label = label.decode()  
         image_name = image_name.decode() 
-        # logging.debug(f"label: {label}, Image name: {image_name}")
         image = image.flatten().tolist()
         return (image, label, image_name)
   
@@ -101,7 +98,7 @@ class PredictorOutput():
 
     def __str__(self):
         return f"label: {self.label}, image_name: {self.image_name}, score: {self.score}, index: {self._index}"
-
+        
 class InceptionResnetTensorflowWraperOutput(WraperOutput):
     """InceptionResnetTensorflowWraperOutput -> A WraperOutput Object for InceptionResnetTensorflowWraper."""
     def __init__(self, predictor_output_list: list):
@@ -134,8 +131,6 @@ class InceptionResnetTensorflowWraperOutput(WraperOutput):
         """
         sorted_outputs = {}
         for label, group in self.grouped_outputs.items():
-            logging.debug(label)
-            logging.debug(group)
             sorted_outputs[label] = sorted(group, key=lambda x: x.score, reverse=True)
 
         return sorted_outputs
@@ -154,8 +149,8 @@ class InceptionResnetTensorflowWraperOutput(WraperOutput):
         for label, group in self.sorted_outputs.items():
             for index, output in enumerate(group):
                 if index < k:
-                    logging.debug(f"top: {output.image_name} label: {label}")
                     output.top = True
                 outputs.append(output)
+
         return self._order(outputs)
 

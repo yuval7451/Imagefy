@@ -9,7 +9,6 @@ logs/*
 logs
 __pycache__/
 __init__.py
-TODO.md
 test
 .vscode
 *.json
