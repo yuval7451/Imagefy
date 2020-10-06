@@ -16,21 +16,22 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
     """MiniBatchKmeansTensorflowWraper -> An implemntion of Minibatch Kmeans in Tensorflow."""
     def __init__(self, num_epochs: int, num_clusters: int, batch_size: int, **kwargs: dict):
         """
-        @param data: C{list} -> a list of Image Objects.
         @param num_epochs: C{int} -> The number of Training epochs.
         @param num_clusters: C{int} -> The number of Clusters.
-        @param save: C{bool} -> Should we Save the Trained Model, NO IMPLEMNTED YET.
+        @param batch_size: C{int} -> The Batch size.
+        @param kwargs: C{dict} -> For futre use.
+        @local config: C{config.Config} -> the config & hooks handler for the estimator.
         """
         super().__init__(**kwargs)
         self.num_epochs = num_epochs
         self.num_clusters = num_clusters
         self.batch_size = batch_size
-        self.wraper_output = None
         self.config = Config(self.base_model_dir)
         
     def run(self):
         """
         @remarks *This is where the action starts.
+        @return C{MiniBatchKmeansWraperOutput} -> the clustering result, used for IOWraper.
         """     
     
         self.cluster = tf.compat.v1.estimator.experimental.KMeans(
@@ -48,7 +49,10 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
         return self.wraper_output
 
     def _train(self, hooks: list):
-        # train
+        """
+        @param hooks: C{list} -> A list of hooks for training.
+        @remarks *Trains the estimator.
+        """
         with tf.device('/gpu:0'):
             logging.info("Starting to train")
             # for _ in tqdm(range(self.num_epochs)):
@@ -70,6 +74,10 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
         #     tf.summary.histogram(value.name, value)
 
     def _transform(self):
+        """
+        @remarks *splits the input data to each cluster.
+        @return C{MiniBatchKmeansWraperOutput}  -> The clustering output, used for IOWraper.
+        """
         with tf.device('/gpu:0'):
         # map the input points to their clusters
             logging.info("starting to Transform the data")
@@ -81,6 +89,7 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
         return MiniBatchKmeansWraperOutput(cluster_labels=cluster_indices)
 
     def save(self):
+        raise NotImplementedError("look at research\\estimator\\infrerence_keras_model.py")
         # Saving estimator model
         model_path = os.path.join(self.model_dir, self.model_name)
         logging.info(f"Saving model to {model_path}")
@@ -90,10 +99,10 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
         self.cluster.estimator.export_saved_model(model_path, serving_input_fn)
     
     def load(self, path):
+        raise NotImplementedError("look at research\\estimator\\infrerence_keras_model.py")
         logging.info(f"loading model from {path}")
         self.cluster = tf.saved_model.load(path)
     
-
 class MiniBatchKmeansWraperOutput(WraperOutput):
     """MiniBatchKmeansWraperOutput -> A WraperOutput Object for MiniBatchKemansTensorflowWraper."""
     def __init__(self, cluster_labels):

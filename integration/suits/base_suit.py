@@ -11,8 +11,10 @@ from integration.utils.common import BASE_PATH_DEST, LOG_DIR, MINI_KMEAND_DEST, 
 
 class BaseSuit(ABC):
     """BaseSuit -> Some Kind of Class that controls everything."""
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: dict):
         """
+        @param kwargs: C{dict} -> A dict with all parameters passed on Runtime.
+        @remarks *Base Class for Suits.
         """
         logging.debug(f"Initializing {self.__class__.__name__}")
         self.kwargs = kwargs

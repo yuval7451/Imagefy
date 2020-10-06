@@ -10,8 +10,19 @@ from integration.utils.tensorboard_utils import save_embeddings, save_labels, sa
 
 
 class TensorboardWraper(BaseLoader):
-    def __init__(self, name: str, base_model_dir: str, metadata: list, batch_size: int, data_length: int, dataset: callable, **kwargs):
+    """TensorboardWraper -> A class that will log tensorboard format output for projection & Graphs."""
+    def __init__(self, name: str, base_model_dir: str, metadata: tuple, batch_size: int, data_length: int, dataset: callable, **kwargs):
         """
+        @param  name: C{str} -> The name of the Wraper the called TensorboardWraper, Take from BaseSuit.name.
+        @param  base_model_dir: C{str} -> The base model dir for output & logs, Take from BaseSuit.base_model_name.
+        @param  metadata: C{list} -> A list containing (labels, filenames) -> (WraperOutput.cluster_labels, BaseLoader._image_names).
+        @param  batch_size: C{int} -> The batch size for the TensorLoader input_fn.
+        @param  data_length: C{int} -> The data_lenght, use for debuging, sometimes Labels and filenames dont match in length.
+        @param  dataset: C{callable} -> The Wraper Tensorloader input_fn
+        @param  **kwargs: C{dict} -> For future use.
+        @local metadata_path: C{str} -> The path for embedings labels.
+        @local embedings: C{list} -> A place holder of the embedings
+        @local images: C{list} > A place holder of the images.
         """
         super().__init__(**kwargs)
         self.kwargs = kwargs
@@ -19,7 +30,6 @@ class TensorboardWraper(BaseLoader):
         self.base_model_dir = base_model_dir
         self.metadata = metadata
         self.metadata_path = os.path.join(self.base_model_dir, f"{self.name}-metadata.tsv")
-        self._loader = TensorLoader(**self.kwargs)
         self.batch_size = batch_size
         self.dataset =  dataset(batch_size=None, shuffle=False, num_epochs=1)
         self.data_length = data_length
@@ -27,6 +37,10 @@ class TensorboardWraper(BaseLoader):
         self.images = []
 
     def run(self):
+        """
+        @remarks *Creates an iterator from The dataset input_fn.
+                 *Dumps all the tesorboard logs to self.base_model_dir
+        """
         iterator = tf.compat.v1.data.make_one_shot_iterator(self.dataset)
         next_element = iterator.get_next()
         with tf.compat.v1.Session() as sess:

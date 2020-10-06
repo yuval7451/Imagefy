@@ -12,8 +12,10 @@ from integration.utils.common import  BASE_PATH_DEST, OUTPUT_DIR_PATH, DATA_PARA
 
 class IntergrationSuit(BaseSuit):
     """IntergrationSuit -> Some Kind of Class that controls everything."""
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: dict):
         """
+        @param kwargs: C{dict} -> A dict with all parameters passed on Runtime.
+        @remarks *Curently the bos of the module.
         """
         super().__init__(**kwargs)
         # Asign Parameters
@@ -26,13 +28,15 @@ class IntergrationSuit(BaseSuit):
         self.WraperOutput = None
         self.IOHandler = None
 
-        self.kwargs.update({MODEL_NAME_PARAM: self.model_name, BASE_PATH_DEST: self.base_path, BASE_MODEL_DIR_PARAM: self.base_model_dir})
+        self.kwargs.update({MODEL_NAME_PARAM: self.model_name, 
+                            BASE_PATH_DEST: self.base_path, 
+                            BASE_MODEL_DIR_PARAM: self.base_model_dir})
 
         logging.debug(str(self.kwargs))
 
     def run(self):
         """
-        The `main` Function of each Suit, usually calls The @BaseWraper & @IOWraper
+        The `main` Function of each Suit, usually calls The @BaseLoader, @BaseWraper & @IOWraper
         """
         # Load Data
         self._loader = TensorLoader(**self.kwargs)  

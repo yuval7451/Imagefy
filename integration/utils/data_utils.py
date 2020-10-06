@@ -69,27 +69,37 @@ class WraperOutput(ABC):
         self.cluster_labels = cluster_labels
 
 class BaseLoader(ABC):
-    def __init__(self, dir_path : str, image_size: int, **kwrags):
+    """BaseLoader -> A BaseLoader Abstract class."""
+    def __init__(self, dir_path: str, image_size: int, **kwrags):
+        """
+        @param dir_path: C{str} -> The dir path to load images from.
+        @param image_size>: C{int} -> The image size to resize to.
+        @param kwargs: C{dict} -> for future meeds.
+        @local name: C{list} -> The name of the Class. Parents included.
+        """
         self.dir_path = dir_path
         self.image_size = image_size
-        self.data = None
         self.name = self.__class__.__name__
-        self._image_names = None
-
         logging.debug(f"Initializing {self.name}")
 
     @abstractmethod
     def run(self):
+        """
+        @remarks *Legecy Fucntion for suported DataLoader.
+        """
         logging.info(f"Starting {self.name}")
     
 class TensorLoader(BaseLoader):
-    """TensorLoader ."""
+    """TensorLoader -> A Scalbles solution for loading data using tf.data.Dataset API."""
     def __init__(self, model_name: str, base_path: str, **kwargs : dict):
         """
-        @param BaseLoader.dir_path: C{str} -> The dir to load the pictures from.
-        @param BaseLoader.image_size: C{int} -> The size the images should be resized to befor flattening them [size, size, 3] -> [size * size * 3]
-        @param AUTOTUNE C{tf.data.experimental.AUTOTUNE} -> ..
-        @param tensor: C{bool} -> ..
+        @param model_name: C{str} -> The model name, Taken for BaseSuit.model_name.
+        @param base_path: C{str} -> The base path for logs & output, Taken from BaseSuit.base_path.
+        @param kwargs: C{dict} -> Other parameters for BaseLoader.
+        @local AUTOTUNE C{tf.data.experimental.AUTOTUNE} -> An object that can mange resources at runtime
+        @local dataset: C{tf.data.Dataset} -> The Dataset created with either *_input_fn.
+        @local _image_names: C{list} -> A list of all the images in the self.dir_path, used for tensorboard logs.
+        @local output_dir_path: C{str} -> The output path of IOWraper, used for InceptionResnetWraper input_fn.
         """
         super().__init__(**kwargs)
         self.AUTOTUNE = tf.data.experimental.AUTOTUNE
@@ -100,8 +110,13 @@ class TensorLoader(BaseLoader):
         self.output_dir_path = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, "*")
 
     @tf.function
-    def mini_batch_kmeans_input_fn(self, batch_size: int, shuffle : bool, num_epochs : int, **kwrags):
+    def mini_batch_kmeans_input_fn(self, batch_size: int, shuffle: bool, num_epochs: int, **kwrags):
         """
+        @param batch_size: C{int} -> The batch size for tf.data.Dataset.batch(...).
+        @param shuffle: C{bool} -> Whether to shuffle the Dataset (during .list_files for better preformence).
+        @param num_epochs: C{int} -> The number of epochs for tf.data.Dataset.repeat(...).
+        @param kwargs: C{dict} -> For future needs.
+        @return tf.data.Dataset -> the dataset for KmeansTensorflowWraper
         """
         options = tf.data.Options()
         options.experimental_optimization.autotune_buffers = True
@@ -117,7 +132,14 @@ class TensorLoader(BaseLoader):
         return self.dataset   
     
     @tf.function
-    def inception_input_fn(self):    
+    def inception_input_fn(self):  
+        """
+        @param batch_size: C{int} -> The batch size for tf.data.Dataset.batch(...).
+        @param shuffle: C{bool} -> Whether to shuffle the Dataset (during .list_files for better preformence).
+        @param num_epochs: C{int} -> The number of epochs for tf.data.Dataset.repeat(...).
+        @param kwargs: C{dict} -> For future needs.
+        @return tf.data.Dataset -> the dataset for Inception
+        """  
         options = tf.data.Options()
         options.experimental_optimization.autotune_buffers = True
         options.experimental_optimization.autotune_cpu_budget = True
@@ -131,6 +153,8 @@ class TensorLoader(BaseLoader):
     @tf.function
     def _load_tensor(self, image_path: str):
         """
+        @param image_path: C{tf.Tensor} -> The image path Tensor, created by tf.data.Dataset.list_files(...).
+        @return C{tf.Tensor} -> A tensor image, normalized (-1, 1) & flattended.
         """   
         image = tf.io.read_file(image_path)
         image = tf.image.decode_jpeg(image)
@@ -144,6 +168,8 @@ class TensorLoader(BaseLoader):
     @tf.function
     def _load_tensor_with_label(self, image_path: str):
         """
+        @param image_path: C{tf.Tensor} -> The image path Tensor, created by tf.data.Dataset.list_files(...).
+        @return C{tuple(tf.Tensor, tf.Tensor)} -> A tensor image, normalized (-1, 1) & flattended & a Label.
         """   
         image = tf.io.read_file(image_path)
         label = tf.strings.split(image_path, os.sep)[-2]
@@ -155,15 +181,14 @@ class TensorLoader(BaseLoader):
 
     def run(self, **kwrags):
         """
-        @remarks *A simple function the will list all the supported images in a folder
-                 *The list of supported image types can be found at @common.IMAGE_TYPES
+        @param kwargs: C{dict} -> for future needs.
+        @remarks *A simple function the will list all the supported images in a folder.
+                 *The list of supported image types can be found at @common.IMAGE_TYPES.
+        @return C{list} -> A list of `hollow` Image Objects for IOWraper with KmeansTensorflowWraper
         """
         logging.debug("Listing Images")
         image_list = []
-        # _dir_path = self.dir_path.split("*")[-2]
-        # for image_name in os.listdir(_dir_path):
         for image_name in self._image_names:
-            # if image_name.split('.')[-1].lower() in IMAGE_TYPES:
             image_path = os.path.join(self.dir_path, image_name) 
             image_list.append(Image(src_path=image_path, data=None, hollow=True))
 
