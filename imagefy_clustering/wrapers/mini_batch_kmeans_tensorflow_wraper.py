@@ -11,9 +11,9 @@ import os;  os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import logging
 
 import tensorflow as tf
-from integration.wrapers.base_wraper import BaseWraper
-from integration.utils.data_utils import  WraperOutput
-from integration.suits.config import Config
+from imagefy_clustering.wrapers.base_wraper import BaseWraper
+from imagefy_clustering.utils.data_utils import  WraperOutput
+from imagefy_clustering.suits.config import Config
 
 class MiniBatchKmeansTensorflowWraper(BaseWraper):
     """MiniBatchKmeansTensorflowWraper -> An implemntion of Minibatch Kmeans in Tensorflow."""

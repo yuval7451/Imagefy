@@ -5,9 +5,9 @@
 import time, datetime
 import logging
 import numpy as np
-from integration.utils.argument_parser import arg_parser
-from integration.suits.intergration_suit import IntergrationSuit
-# from integration.utils.enum import Enum
+from imagefy_clustering.utils.argument_parser import arg_parser
+from imagefy_clustering.suits.intergration_suit import IntergrationSuit
+# from imagefy_clustering.utils.enum import Enum
 #### Functions ####
 
 def main():

@@ -4,10 +4,10 @@
 #### Imports ####
 import logging
 from abc import ABC, abstractclassmethod
-from integration.wrapers.mini_batch_kmeans_tensorflow_wraper import MiniBatchKmeansTensorflowWraper
-from integration.wrapers.kmeans_tensorflow_wraper import KmeansTensorflowWraper 
-from integration.utils.data_utils import DataLoader, TensorLoader
-from integration.utils.common import KMEANS_DEST, MINI_KMEAND_DEST, DATA_LOADER_DEST, TENSOR_LADER_DEST
+from imagefy_clustering.wrapers.mini_batch_kmeans_tensorflow_wraper import MiniBatchKmeansTensorflowWraper
+from imagefy_clustering.wrapers.kmeans_tensorflow_wraper import KmeansTensorflowWraper 
+from imagefy_clustering.utils.data_utils import DataLoader, TensorLoader
+from imagefy_clustering.utils.common import KMEANS_DEST, MINI_KMEAND_DEST, DATA_LOADER_DEST, TENSOR_LADER_DEST, WRAPER_PARAM
 
 class BaseSuit(ABC):
     """BaseSuit -> Some Kind of Class that controls everything."""
@@ -17,7 +17,10 @@ class BaseSuit(ABC):
         logging.debug(f"Initializing {self.__class__.__name__}")
         self.kwargs = kwargs
         # Asign Paramete
+
         self._wrapers = self._get_wrapers()
+        if self.kwargs.get(WRAPER_PARAM) is None:
+            raise RuntimeError("wraper is missing, use <kmeans, mini_kmeans>")
         self._loaders = self._get_loaders()
         self._wraper = None
         self._loader = None

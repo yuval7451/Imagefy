@@ -14,8 +14,9 @@ test
 models
 .vscode
 # JS -Server
-
-
+imagefyenv/
+imagefyenv
+*.bat
 # Logs
 logs
 *.log
