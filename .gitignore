@@ -13,6 +13,8 @@ test
 .vscode
 *.json
 models
+models/
+*.h5
 .vscode
 
 # Logs
