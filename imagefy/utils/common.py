@@ -6,7 +6,7 @@ import tensorflow as tf
 
 #### CONSTANTS ####
 WEIGHTS_FOLDER_PATH = "D:\\Datasets\\Imagefy\\weights"
-IMAGE_SIZE = 124
+IMAGE_SIZE = 224
 MINI_KMEANS_NUM_EPOCHS = 10
 MINI_KMEANS_BATCH_SIZE = 20
 MAX_WORKERS = 50
@@ -41,13 +41,17 @@ DATA_PARAM = 'data'
 
 X_PARAM = 'X'
 Y_PARAM = 'y'
+TOP_DEST = 'top'
+TOP_PARAM = 3
 
 WRAPER_PREFIX = '_tensorflow_wraper.py'
 TENSORBOARD_NAME_PARAM = None
 
 MINI_BATCH_KMEANS_TENSORFLOW_WRAPER = "MiniBatchKmeansTensorflowWraper"
 INCEPTION_RESNET_TENSORFLOW_WRAPER = "InceptionResnetTensorflowWraper"
+INCEPTION_RESNET_TENSORFLOW_WRAPER_OUTPUT = "InceptionResnetTensorflowWraperOutput"
 INCEPTION_RESNET_INFERENCE_INPUT = "input_1"
 PREDICTOR_INFERENCE_INPUTS = "predictor_inputs"
 INCEPTION_RESNET_INFERENCE_DENSE = "dense"
 OUTPUT_DIR_PATH_PARAM = 'output_dir_path'
+IFERENCE_MODEL_DIR = "D:\\Imagefy\\resources\\models\\InceptionResNetV2\\inference\\1601923417"

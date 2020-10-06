@@ -5,8 +5,8 @@ import logging
 import numpy as np
 import tensorflow as tf
 from tensorflow.contrib.tensorboard.plugins import projector
-from integration.utils.data_utils import BaseLoader, TensorLoader
-from integration.utils.tensorboard_utils import save_embeddings, save_labels, save_sprite_image
+from imagefy.utils.data_utils import BaseLoader, TensorLoader
+from imagefy.utils.tensorboard_utils import save_embeddings, save_labels, save_sprite_image
 
 
 class TensorboardWraper(BaseLoader):
@@ -55,8 +55,6 @@ class TensorboardWraper(BaseLoader):
                 logging.info("Finished Loading Data")
             
             #DEBUG
-            logging.debug(f"There are {len(self.images)} images")
-            logging.debug(f"The are {len(self.embedings)} embedings")
             logging.debug(f"Truncating dataset to {self.data_length}")
             self.images = self.images[:self.data_length]
             self.embedings = self.embedings[:self.data_length]
@@ -147,12 +145,10 @@ class Tensorboard():
         self.base_model_dir = base_model_dir
         self.image_size = image_size
 
-        if self.data is not None and self.data[0].data is not None:
+        if self.data is not None:
             self._convert_image_object_to_numpy()
         elif self.X is not None and self.y is not None:
-            logging.debug("X, y were Found")
-            logging.debug(f"X: {self.X.shape}")
-            logging.debug(f"Y: ({len(self.y)}, 1)")
+            logging.debug("Using visualization format")
         else:
             logging.warn(f"Please Make sure to use Tensorboard.load() OR you called Image.free(), Data is {type(self.data)}")
 

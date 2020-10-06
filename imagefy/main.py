@@ -5,8 +5,8 @@
 import time, datetime
 import logging
 import numpy as np
-from integration.utils.argument_parser import arg_parser
-from integration.suits.intergration_suit import IntergrationSuit
+from imagefy.utils.argument_parser import arg_parser
+from imagefy.suits.intergration_suit import IntergrationSuit
 
 #### Functions ####
 def main():
