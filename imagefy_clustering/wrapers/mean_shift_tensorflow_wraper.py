@@ -7,8 +7,8 @@ import os
 import logging
 import numpy as np
 import tensorflow as tf
-from imagefy_clustering.wrapers.base_wraper import BaseWraper
-from imagefy_clustering.utils.data_utils import WraperOutput
+from imagefy.wrapers.base_wraper import BaseWraper
+from imagefy.utils.data_utils import WraperOutput
 
 
 class MeanShiftTensorflowWraper(BaseWraper):

@@ -12,9 +12,9 @@ import logging
 import numpy as np
 import tensorflow as tf
 from sklearn.metrics import silhouette_score
-from imagefy_clustering.wrapers.base_wraper import BaseWraper
-from imagefy_clustering.utils.data_utils import WraperOutput
-from imagefy_clustering.utils.common import BATCH_SIZE_DEST
+from imagefy.wrapers.base_wraper import BaseWraper
+from imagefy.utils.data_utils import WraperOutput
+from imagefy.utils.common import BATCH_SIZE_DEST
 
 class KmeansTensorflowWraper(BaseWraper):
     """KmeansTensorflowWraper -> An implemntion of Kmeans & silhouette_score in Tensorflow."""

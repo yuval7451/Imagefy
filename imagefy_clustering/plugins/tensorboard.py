@@ -5,8 +5,8 @@ import logging
 import numpy as np
 import tensorflow as tf
 from tensorflow.contrib.tensorboard.plugins import projector
-from imagefy_clustering.utils.data_utils import BaseLoader, TensorLoader
-from imagefy_clustering.utils.tensorboard_utils import save_embeddings, save_labels, save_sprite_image
+from imagefy.utils.data_utils import BaseLoader, TensorLoader
+from imagefy.utils.tensorboard_utils import save_embeddings, save_labels, save_sprite_image
 
 
 class TensorboardWraper(BaseLoader):

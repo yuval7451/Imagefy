@@ -5,12 +5,12 @@
 import os;  os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import logging
 import tensorflow as tf
-from imagefy_clustering.suits.base_suit import BaseSuit
-from imagefy_clustering.utils.data_utils import IOWraper
-from imagefy_clustering.utils.common import  BASE_PATH_DEST, OUTPUT_DIR_PATH, DATA_PARAM, VERBOSE_DEST, WRAPER_PARAM, LOADER_DEST
+from imagefy.suits.base_suit import BaseSuit
+from imagefy.utils.data_utils import IOWraper
+from imagefy.utils.common import  BASE_PATH_DEST, OUTPUT_DIR_PATH, DATA_PARAM, VERBOSE_DEST, WRAPER_PARAM, LOADER_DEST
 
-class IntergrationSuit(BaseSuit):
-    """IntergrationSuit -> Some Kind of Class that controls everything."""
+class IntegrationSuit(BaseSuit):
+    """IntegrationSuit -> Some Kind of Class that controls everything."""
     def __init__(self, **kwargs):
         """
         """

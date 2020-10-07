@@ -4,10 +4,10 @@
 #### Imports ####
 import logging
 from abc import ABC, abstractclassmethod
-from imagefy_clustering.wrapers.mini_batch_kmeans_tensorflow_wraper import MiniBatchKmeansTensorflowWraper
-from imagefy_clustering.wrapers.kmeans_tensorflow_wraper import KmeansTensorflowWraper 
-from imagefy_clustering.utils.data_utils import DataLoader, TensorLoader
-from imagefy_clustering.utils.common import KMEANS_DEST, MINI_KMEAND_DEST, DATA_LOADER_DEST, TENSOR_LADER_DEST, WRAPER_PARAM
+from imagefy.wrapers.mini_batch_kmeans_tensorflow_wraper import MiniBatchKmeansTensorflowWraper
+from imagefy.wrapers.kmeans_tensorflow_wraper import KmeansTensorflowWraper 
+from imagefy.utils.data_utils import DataLoader, TensorLoader
+from imagefy.utils.common import KMEANS_DEST, MINI_KMEAND_DEST, DATA_LOADER_DEST, TENSOR_LADER_DEST, WRAPER_PARAM
 
 class BaseSuit(ABC):
     """BaseSuit -> Some Kind of Class that controls everything."""

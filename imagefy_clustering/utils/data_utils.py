@@ -13,7 +13,7 @@ from tqdm import tqdm
 import tensorflow as tf
 import concurrent.futures
 from abc import ABC, abstractmethod
-from imagefy_clustering.utils.common import IMAGE_TYPES, MAX_WORKERS, OUTPUT_DIR_PATH, CLUSTER_NAME_FORMAT
+from imagefy.utils.common import IMAGE_TYPES, MAX_WORKERS, OUTPUT_DIR_PATH, CLUSTER_NAME_FORMAT
 
 class Image():
     """Image -> A Class That holds information about an Image."""

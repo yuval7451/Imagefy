@@ -8,25 +8,42 @@
 ---
 - Imagefy Uses KMeans Clustering & InceptionResNetV2 CNN in order to Group  Images by Similarity and then choose the best image out of every group
 
-## *How Can i Use it to?*
+## *Recomended setup*
 ---
-### Imagefy has serval Modules & Loaders
-1. Generall Usage:
+- *Make Sure you have the appropriate Drivers for Tensorflow*
+- *List of drivers & installtion instructions can be found [here](https://www.tensorflow.org/install/gpu)* 
+
 ```
-integration\main.py -d <DATA DIR> -o <OUTPUT DIR> -s <IMAGE SIZE> -l <DATA LOADER> <!WRAPER> <WRAPER PARAMS>
-```
-2. MiniBatchKmeans & TensorLoader - (aka tf.data.Dataset DataLoader)
-```
-integration\main.py -d <DATA DIR> -v <!VERBOSE> -o <OUTPUT DIR> -s <IMAGE SIZE> --tensorboard <!LOG TENSOORBOARD> -l tensor_loader <!DATA LOADER> mini_kmeans <!WRAPER> -e <EPOCH> -b <BATCH SIZE> -c <NUM CLUSUSTERS>
+1. git clone https://github.com/yuval7451/Imagefy.git
+2. cd Imagefy
+3. virtualenv imagefyenv
+4. imagefyenv\Scripts\activate
+5. pip install -r requirments.txt
 ```
 
+## Usage & Help
 ---
-# Packegs & Versions
-- Python ~3.7
-- Cuda ToolKit==10.0
-- CuDNN==7.6.5
-- tensorflow-gpu==1.15
-- keras==2.2.5?
-- opencv-python
-- scikit-learn
-- matplotlib
+#### Imagefy has serval Modules & Loaders
+1. Help
+```
+python3 imagefy\main.py --help
+```
+
+2. Generall Usage:
+```
+imagefy\main.py -d "YOU\DATA\DIR" -o "YOUR\OUTPUT\DIR" -s IMAGE_SIZE -l DATA_LOADER WRAPER_NAME <WRAPER PARAMS>
+```
+3. MiniBatchKmeans & TensorLoader - (aka tf.data.Dataset DataLoader)
+```
+imagefy\main.py  -d "YOU\DATA\DIR" -o "YOUR\OUTPUT\DIR" --tensorboard -l tensor_loader mini_kmeans -e <EPOCH> -b <BATCH SIZE> -c <NUM CLUSUSTERS>
+```
+
+4. MiniBatchKmeans & DataLoader - (aka My MultiThreader implementation of a DataLoader)
+```
+imagefy\main.py  -d "YOU\DATA\DIR" -o "YOUR\OUTPUT\DIR" --tensorboard -l data_loader mini_kmeans -e <EPOCH> -b <BATCH SIZE> -c <NUM CLUSUSTERS>
+```
+
+5. Kmeans & DataLoader - (aka My MultiThreader implementation of a DataLoader)
+```
+imagefy\main.py  -d "YOU\DATA\DIR" -o "YOUR\OUTPUT\DIR" --tensorboard -l data_loader kmeans --start <Min number of Clusters> --end <Max number of clisters> -i <Number of training iteration>
+```
