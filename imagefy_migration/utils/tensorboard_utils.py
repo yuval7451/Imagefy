@@ -77,6 +77,8 @@ def save_embeddings(images_features_labels, save_dir):
     saver.save(sess, os.path.join(save_dir, 'ckpt'))
 
 def save_labels(labels, name, save_dir):
+    """
+    """
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
     logging.info("Saving Labels")
@@ -113,11 +115,13 @@ def create_sprite_image(images):
     return spriteimage
     
 def save_sprite_image(to_visualise, path, invert=True):
+    """
+    """
     if invert:
         to_visualise = invert_grayscale(to_visualise)
     sprite_image = create_sprite_image(to_visualise)
-    # imsave(path, sprite_image)#, cmap='gray')
-    # sprite_image = np.array(sprite_image, dtype=np.uint8)
+
+    sprite_image =  np.array(sprite_image * 255, dtype=np.uint8)
     imageio.imwrite(path, sprite_image)
 
 def invert_grayscale(data):
@@ -133,6 +137,3 @@ def save_metadata(batch_ys, metadata_path):
                 f.write("{}\t{}\n".format(index, label))
             else:
                 f.write("{}\t{}\t{}\n".format(index, label, filename))
-            # else:
-            #     logging.warn(f"Check {index} {label} at save_metadata")
-            #     f.write('\t'.join((str(index), str(label))) + '\n')
