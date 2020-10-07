@@ -5,24 +5,27 @@
 import os
 import logging
 import datetime
+import tensorflow as tf
 from abc import ABC, abstractclassmethod
-from imagefy.utils.common import BASE_PATH_DEST, LOG_DIR, OUTPUT_DIR_PATH
+from imagefy.utils.common import BASE_PATH_DEST, LOG_DIR, OUTPUT_DIR_PATH, MODEL_NAME_PARAM,\
+    BASE_PATH_DEST, BASE_MODEL_DIR_PARAM, OUTPUT_DIR_PATH_PARAM
 
 class BaseSuit(ABC):
     """BaseSuit -> Some Kind of Class that controls everything."""
-    def __init__(self, **kwargs: dict):
+    def __init__(self, verbose: bool, **kwargs: dict):
         """
         @param kwargs: C{dict} -> A dict with all parameters passed on Runtime.
         @remarks *Base Class for Suits.
         """
         self.name = self.__class__.__name__
         logging.debug(f"Initializing {self.name}")
+        self.verbose = verbose
+
         self.kwargs = kwargs
-        # Asign Paramete
         self._loader = None
         self.WraperOutput = None
         self.IOHandler = None
-        (self.model_name, self.base_path, self.base_model_dir, self.output_dir_path) = self._set_model_directories()
+        self.Initialize()
         
     @abstractclassmethod
     def run(self):
@@ -43,3 +46,51 @@ class BaseSuit(ABC):
         output_dir_path = os.path.join(base_path, OUTPUT_DIR_PATH, model_name, "*", "*")
         os.makedirs(base_model_dir)
         return (model_name, base_path, base_model_dir, output_dir_path)
+
+    def Initialize(self):
+        # importent directories for the model
+        (self.model_name, 
+        self.base_path, 
+        self.base_model_dir, 
+        self.output_dir_path) = self._set_model_directories()
+        # Logging & stuff
+        self.initialize_logger()
+        # Gpu's
+        self.initialize_gpu()
+        # Kwargs
+        self.initialize_kwargs()
+
+    def initialize_logger(self):
+        # Log files
+        #FIX ME:
+        log_path = os.path.join(self.base_model_dir, "session.log")
+        handler = logging.FileHandler(log_path)
+
+        level = logging.DEBUG if self.verbose else logging.INFO
+        tensorflow_level = tf.compat.v1.logging.INFO if self.verbose else tf.compat.v1.logging.WARNING
+        logging.getLogger('tensorflow').addHandler(handler)
+        tf.compat.v1.logging.set_verbosity(tensorflow_level)
+
+        logging.getLogger().addHandler(handler)
+        logging.getLogger().setLevel(level)
+
+    def initialize_gpu(self):
+        gpu_avilable = len(tf.config.experimental.list_physical_devices('GPU'))
+        logging.info(f"Num GPUs Available: {gpu_avilable}") 
+        gpu_log_level = False #True if self.verbose else False
+        tf.debugging.set_log_device_placement(gpu_log_level)
+        logging.info(f"Logging GPU device placement: {gpu_log_level}")
+        gpus = tf.config.experimental.list_physical_devices('GPU')
+        [tf.config.experimental.set_memory_growth(gpu, True) for gpu in gpus]
+        tf.config.set_soft_device_placement(True)
+        logging.info(f"Tensorflow is Executing Eagerly: {tf.executing_eagerly()}")
+        tf.profiler.experimental.server.start(6009)
+
+    def initialize_kwargs(self):
+        self.kwargs.update({
+            MODEL_NAME_PARAM: self.model_name, 
+            BASE_PATH_DEST: self.base_path, 
+            BASE_MODEL_DIR_PARAM: self.base_model_dir,
+            OUTPUT_DIR_PATH_PARAM: self.output_dir_path})
+
+        logging.debug(str(self.kwargs))

@@ -24,26 +24,8 @@ class IntergrationSuit(BaseSuit):
         @remarks *Curently the bos of the module.
         """
         super().__init__(**kwargs)
-        # Log files
-        log_path = os.path.join(self.base_model_dir, "session.log")
-        logging.getLogger('tensorflow').addHandler(logging.FileHandler(log_path))
-        logging.getLogger().addHandler(logging.FileHandler(log_path))
-        self.kwargs = kwargs
-        self.verbose = self.kwargs.get(VERBOSE_DEST, False)
-        logging.getLogger().setLevel(logging.DEBUG if self.verbose else logging.INFO)
-        tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO if self.verbose else tf.compat.v1.logging.ERROR)
+        tf.profiler.experimental.start(self.base_model_dir)
 
-
-        self.WraperOutput = None
-        self.IOHandler = None
-
-        self.kwargs.update({MODEL_NAME_PARAM: self.model_name, 
-                            BASE_PATH_DEST: self.base_path, 
-                            BASE_MODEL_DIR_PARAM: self.base_model_dir,
-                            OUTPUT_DIR_PATH_PARAM: self.output_dir_path})
-
-        logging.debug(str(self.kwargs))
-        logging.info(f"Tensorflow is Executing Eagerly: {tf.executing_eagerly()}")
 
     def run(self):
         """
@@ -54,8 +36,8 @@ class IntergrationSuit(BaseSuit):
         self.data = self._loader.run()
         self.kwargs.update({DATA_PARAM: self.data, LOADER_DEST: self._loader})
        
+       # Kmeans
         self.kmeans = MiniBatchKmeansTensorflowWraper(**self.kwargs) 
-
         self.WraperOutput = self.kmeans.run()
         
         # Handle IO And File Transfering
@@ -63,8 +45,9 @@ class IntergrationSuit(BaseSuit):
         self.IOHandler.create_output_dirs()
         self.IOHandler.merge_kmeans_data()
         self.IOHandler.move_kmeans_data()
-        logging.info(f"Check {OUTPUT_DIR_PATH} for output")
+        logging.info(f"Check {self.base_model_dir} for output")
 
+        # Inception
         self.inception = InceptionResnetTensorflowWraper(**self.kwargs)
         inception_data = self._loader.create_inception_data()
         self.WraperOutput = self.inception.run()
@@ -72,3 +55,6 @@ class IntergrationSuit(BaseSuit):
 
         self.IOHandler.merge_inception_data(self.kwargs.get(TOP_DEST))
         self.IOHandler.move_inception_data()
+
+        tf.profiler.experimental.stop()
+        logging.info("Finished running Suit")

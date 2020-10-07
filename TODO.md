@@ -42,6 +42,7 @@
 - [] Better Readmes for all branches, fix typo.
 - [] better Documention in all branches
 - [] Fix GPU issue with inference
+- [] tf.distribute.MirroredStrategy
 - [] Try upgrading to TF 2.3
 - [] Calculate Number of Clusters on you own len(data) \\ 10 ?
 - [] WSL2, Cuda, RAPIDS & CudNN

@@ -3,8 +3,7 @@
 
 #### Imports ####
 import logging
-import timeit
-import time, datetime
+import time
 from imagefy.utils.argument_parser import arg_parser
 from imagefy.suits.intergration_suit import IntergrationSuit
 

@@ -24,7 +24,7 @@ class KmeansConfig():
     def _config_proto(self):        
         config_proto = tf.compat.v1.ConfigProto(
             gpu_options=self._gpu_options(),
-            allow_soft_placement=False,
+            allow_soft_placement=True,
             log_device_placement=False,
         )
         return config_proto
@@ -40,7 +40,7 @@ class KmeansConfig():
         return config
     
     def get_hooks(self):
-        return [self._summary_hook()] #, self._profile_hook()] tf_debug.TensorBoardDebugHook("localhost:1337") BeholderHook(self.base_model_dir)
+        return [] # self._profile_hook() tf_debug.TensorBoardDebugHook("localhost:1337") self._summary_hook()
 
     def _summary_hook(self):
         summary_hook = tf.estimator.SummarySaverHook(
@@ -52,7 +52,6 @@ class KmeansConfig():
   
     def _profile_hook(self):
         profile_hook = tf.estimator.ProfilerHook(
-            # save_secs=10,
             save_steps=10,
             output_dir=os.path.join(self.base_model_dir,'summary'),
             show_dataflow=True,
@@ -63,7 +62,6 @@ class KmeansConfig():
     def _metadata_hook(self):
         metadata_hook = MetadataHook(save_steps=1, output_dir=os.path.join(self.base_model_dir)) # 'metadata'
         return metadata_hook
-
 class MetadataHook(SessionRunHook):
     def __init__ (self,
                   save_steps=None,
