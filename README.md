@@ -1,12 +1,13 @@
 # *Imagefy*
-
 ## *What is It?*
 ---
+- **This is an old version of imagefy that only supports clustering, It Can only Group Images by Similarity**
+- **For the newest release head to [master](https://github.com/yuval7451/Imagefy/tree/master)**
 - A AI Driven Module that will help you choose the best pictures
 
 ## *How Does It do that?*
 ---
-- Imagefy Uses KMeans Clustering & InceptionResNetV2 CNN in order to Group  Images by Similarity and then choose the best image out of every group
+- Imagefy Uses KMeans Clustering in order to Group  Images by Similarity
 
 ## *Recomended setup*
 ---
