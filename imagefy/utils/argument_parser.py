@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 import os
 import argparse
-from integration.utils.common import IMAGE_SIZE, MINI_KMEANS_NUM_EPOCHS, EPOCHS_DEST, DIR_DEST, VERBOSE_DEST, \
+from imagefy.utils.common import IMAGE_SIZE, MINI_KMEANS_NUM_EPOCHS, EPOCHS_DEST, DIR_DEST, VERBOSE_DEST, \
     SIZE_DEST, TENSORBOARD_DEST, MINI_KMEAND_DEST, NUM_CLUSTERS_DEST, BATCH_SIZE_DEST, \
         MINI_KMEANS_BATCH_SIZE, BASE_PATH_DEST
 

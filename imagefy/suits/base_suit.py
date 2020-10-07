@@ -6,8 +6,8 @@ import os
 import logging
 import datetime
 from abc import ABC, abstractclassmethod
-from integration.wrapers.mini_batch_kmeans_tensorflow_wraper import MiniBatchKmeansTensorflowWraper
-from integration.utils.common import BASE_PATH_DEST, LOG_DIR, MINI_KMEAND_DEST, WRAPER_PARAM
+from imagefy.wrapers.mini_batch_kmeans_tensorflow_wraper import MiniBatchKmeansTensorflowWraper
+from imagefy.utils.common import BASE_PATH_DEST, LOG_DIR, MINI_KMEAND_DEST, WRAPER_PARAM
 
 class BaseSuit(ABC):
     """BaseSuit -> Some Kind of Class that controls everything."""

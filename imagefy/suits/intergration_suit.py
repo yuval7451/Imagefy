@@ -5,9 +5,9 @@
 import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import logging
 import tensorflow as tf
-from integration.suits.base_suit import BaseSuit
-from integration.utils.data_utils import IOWraper, TensorLoader
-from integration.utils.common import  BASE_PATH_DEST, OUTPUT_DIR_PATH, DATA_PARAM, VERBOSE_DEST, WRAPER_PARAM, LOADER_DEST, \
+from imagefy.suits.base_suit import BaseSuit
+from imagefy.utils.data_utils import IOWraper, TensorLoader
+from imagefy.utils.common import  BASE_PATH_DEST, OUTPUT_DIR_PATH, DATA_PARAM, VERBOSE_DEST, WRAPER_PARAM, LOADER_DEST, \
     MODEL_NAME_PARAM, BASE_MODEL_DIR_PARAM
 
 class IntergrationSuit(BaseSuit):

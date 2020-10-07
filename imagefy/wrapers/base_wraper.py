@@ -8,9 +8,9 @@ import datetime
 import logging
 import numpy as np
 import tensorflow as tf; tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-from integration.utils.common import LOG_DIR, MINI_BATCH_KMEANS_TENSORFLOW_WRAPER, INCEPTION_RESNET_TENSORFLOW_WRAPER
-from integration.utils.data_utils import BaseLoader
-from integration.plugins.tensorboard import TensorboardWraper
+from imagefy.utils.common import LOG_DIR, MINI_BATCH_KMEANS_TENSORFLOW_WRAPER, INCEPTION_RESNET_TENSORFLOW_WRAPER
+from imagefy.utils.data_utils import BaseLoader
+from imagefy.plugins.tensorboard import TensorboardWraper
 from abc import ABC, abstractmethod
 
 class BaseWraper(ABC):
