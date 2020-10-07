@@ -39,7 +39,7 @@
 - [X] Upgrade to TF 2.x
 - [] Add Init or BaseSuit init for GPU's Verbosity logging, etc..
 - [] Profiling, Debug & TF 2.3
-- [] Better Readmes for all branches
+- [] Better Readmes for all branches, fix typo.
 - [] better Documention in all branches
 - [] Fix GPU issue with inference
 - [] Try upgrading to TF 2.3
