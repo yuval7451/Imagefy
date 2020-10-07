@@ -8,11 +8,12 @@ import os;  os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import logging
 import numpy as np
 import tensorflow as tf
-from imagefy.wrapers.base_wraper import BaseWraper
-from imagefy.utils.data_utils import  WraperOutput
-from imagefy.utils.score_utils import mean_score, std_score
-from imagefy.utils.common import IFERENCE_MODEL_DIR, INCEPTION_RESNET_INFERENCE_INPUT, PREDICTOR_INFERENCE_INPUTS, INCEPTION_RESNET_INFERENCE_DENSE
-from imagefy.wrapers.config import InceptionConfig
+from imagefy_migration.wrapers.base_wraper import BaseWraper
+from imagefy_migration.utils.data_utils import  WraperOutput
+from imagefy_migration.utils.score_utils import mean_score
+from imagefy_migration.utils.common import IFERENCE_MODEL_DIR, INCEPTION_RESNET_INFERENCE_INPUT, INCEPTION_RESNET_INFERENCE_DENSE
+from imagefy_migration.wrapers.config import InceptionConfig
+from pprint import pformat
 
 class InceptionResnetTensorflowWraper(BaseWraper):
     """InceptionResnetTensorflowWraper -> An implemntion of InceptionResnetV2 in Tensorflow."""
@@ -25,54 +26,53 @@ class InceptionResnetTensorflowWraper(BaseWraper):
         @local config: C{tf.compat.v1.ConfigProto} -> the config & hooks handler for the estimator.
         """
         super().__init__(**kwargs) 
-        self.iterator = tf.compat.v1.data.make_one_shot_iterator(self._input_fn())
         self.inference_model_dir = IFERENCE_MODEL_DIR # FIXME?
         self.config = InceptionConfig()
+        self.predictor = tf.saved_model.load(self.inference_model_dir) 
+        
     def run(self):
         """
         @remarks *This is where the action starts.
         @return C{InceptionResnetTensorflowWraperOutput} -> the clustering result, used for IOWraper.
         """     
-        logging.info("Starting {self.name}")
-        self.wraper_output = self._predict()
+        logging.info(f"Starting {self.name}")
+        self.wraper_output = self.predict()
 
         if self._use_tensorboard:
             logging.warn(f"Tensorboard is not Implemented in {self.name}")
         
         return self.wraper_output
 
-    def _predict(self):
+    def predict(self):
         """
         @return C{InceptionResnetTensorflowWraperOutput} -> the Predicted output, will be used for IOWraper.
         @remarks *Loads the inference model and predicts images score.
         """
+        self.dataset = self._input_fn()
+        logging.info("Starting to make prediction")
         predictor_output_list = []
-        next_element = self.iterator.get_next()
-        with tf.compat.v1.Session(config=self.config) as sess:
-            try:
-                # Unkown?
-                # tf.saved_model.loader.load(sess, [tf.saved_model.tag_constants.SERVING], self.inference_model_dir)
-                predictor = tf.contrib.predictor.from_saved_model(self.inference_model_dir)
-                while True:
-                    with tf.device('/device:GPU:0'):    
-                        image, label, image_name = sess.run(next_element)
-                        (image, label, image_name) = self.pre_process_data(image, label, image_name)
-                        model_input = tf.train.Example(features=tf.train.Features(
-                            feature={INCEPTION_RESNET_INFERENCE_INPUT: tf.train.Feature(
-                                float_list=tf.train.FloatList(value=image))}))
-
-                        model_input = model_input.SerializeToString()
-                        output_dict = predictor({PREDICTOR_INFERENCE_INPUTS: [model_input]})
-                        y_predicted = output_dict[INCEPTION_RESNET_INFERENCE_DENSE][0]
-                    
-                    score = mean_score(y_predicted)
-                    predictor_output = PredictorOutput(label=label, image_name=image_name, score=score, index=len(predictor_output_list))
-                    predictor_output_list.append(predictor_output)
-                   
-            except tf.errors.OutOfRangeError:
-                logging.info("Finished Loading Data")
+        for (image, label, image_name) in self.dataset:
+            (image, label, image_name) = self.pre_process_data(image.numpy(), label.numpy(), image_name.numpy())
+            output_dict = self._predict_one(image)
+            y_predicted = output_dict[INCEPTION_RESNET_INFERENCE_DENSE][0].numpy()
+            score = mean_score(y_predicted)
+            predictor_output = PredictorOutput(label=label, image_name=image_name, score=score, index=len(predictor_output_list))
+            logging.debug(predictor_output)
+            predictor_output_list.append(predictor_output)
+                
+        logging.info("Finished making predictions")
 
         return InceptionResnetTensorflowWraperOutput(predictor_output_list=predictor_output_list)
+
+    def _predict_one(self, image):
+        """
+        @param image: C{list} -> A Flattened Image.
+        @return C{np.ndarray} -> A numpy array length 10 containing the score.
+        """
+        with tf.device('/device:GPU:0'): 
+            example = tf.train.Example()
+            example.features.feature[INCEPTION_RESNET_INFERENCE_INPUT].float_list.value.extend(image)
+            return self.predictor.signatures["serving_default"](predictor_inputs=tf.constant([example.SerializeToString()]))
 
     def pre_process_data(self, image: np.ndarray, label: bytes, image_name: bytes):
         """
@@ -85,10 +85,16 @@ class InceptionResnetTensorflowWraper(BaseWraper):
         image_name = image_name.decode() 
         image = image.flatten().tolist()
         return (image, label, image_name)
-  
+
 class PredictorOutput():
     """PredictorOutput -> A Deserialize output from a tf.contrib.predictor.from_saved_model(...)."""
     def __init__(self, label: str, image_name: str, score: float, index: int):
+        """
+        @param label: C{str} -> The cluster name that the image generated this output is in.
+        @param image_name: C{str} -> the image name this output represents.
+        @param score: C{float} -> The score the image got.
+        @param index: C{index} -> It's index in the original order, used for IOWraper.
+        """
         self.label = label
         self._label = int(self.label.split("_")[-1])
         self.image_name = image_name
@@ -98,16 +104,21 @@ class PredictorOutput():
 
     def __str__(self):
         return f"label: {self.label}, image_name: {self.image_name}, score: {self.score}, index: {self._index}"
+    
+    def __repr__(self):
+        return f"label: {self.label}, image_name: {self.image_name}, score: {self.score}, index: {self._index}"
         
 class InceptionResnetTensorflowWraperOutput(WraperOutput):
     """InceptionResnetTensorflowWraperOutput -> A WraperOutput Object for InceptionResnetTensorflowWraper."""
     def __init__(self, predictor_output_list: list):
-            self.predictor_output_list = predictor_output_list
-            self.cluster_labels = [predictor_output._label for predictor_output in self.predictor_output_list]
-            self.grouped_outputs = self._group()
-            self.sorted_outputs = self._sort()
-            n_clusters = max(self.cluster_labels) + 1
-            super().__init__(n_clusters, self.cluster_labels)
+        """
+        """
+        self.predictor_output_list = predictor_output_list
+        self.cluster_labels = [predictor_output._label for predictor_output in self.predictor_output_list]
+        self.grouped_outputs = self._group()
+        self.sorted_outputs = self._sort()
+        n_clusters = max(self.cluster_labels) + 1
+        super().__init__(n_clusters, self.cluster_labels)
 
     def __str__(self):
         return_string = ""
@@ -117,6 +128,8 @@ class InceptionResnetTensorflowWraperOutput(WraperOutput):
 
     def _group(self):
         """
+        @return C{dict} -> A dict where each key is a label and a value is a list of PredictorOutput Objects.
+        @remarks *Groups PredictorOutput Objects by their label.
         """
         grouped_outputs = {}
         for predictor_output in self.predictor_output_list:
@@ -128,6 +141,8 @@ class InceptionResnetTensorflowWraperOutput(WraperOutput):
 
     def _sort(self):
         """
+        @return C{dict} -> A dict where each key is a label and a value is a list of PredictorOutput Objects Sorted by their Score.
+        @remarks *Sorts PredictorOutput Objects by their Score.
         """
         sorted_outputs = {}
         for label, group in self.grouped_outputs.items():
@@ -137,20 +152,28 @@ class InceptionResnetTensorflowWraperOutput(WraperOutput):
 
     def _order(self, outputs: list):
         """
+        @param output: C{list} -> The output of self.top(...), A list of PredictorOutput, some will have .top=True.
+        @return C{list} -> A list of PredictorOutput Objects ordered by the .index variable.
+        @remarks *Reorders a list of PredictorOutput by their .index variable. 
         """
         ordered_outputs = [None for i in range(len(outputs))]
         for output in outputs:
             ordered_outputs[output._index] = output
-
+        
         return ordered_outputs
 
-    def top(self, k: int=3):
+    def top(self, k: int):
+        """
+        @param k: C{int} -> the number of element to consider as top from each cluster.
+        @returns C{list} -> A list of PredictorOutput, while the top ones haveing their top=True, used in IOWraper.
+        @remarks *Given a k parameter it takes the top K PredictorOutput from every cluster by their score and sets their top=True. 
+        """
         outputs = []
         for label, group in self.sorted_outputs.items():
             for index, output in enumerate(group):
                 if index < k:
                     output.top = True
                 outputs.append(output)
-
+        
         return self._order(outputs)
 

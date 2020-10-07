@@ -3,12 +3,11 @@
 Author: Yuval Kaneti
 """
 #### IMPORTS ####
-import os
 import logging
 import numpy as np
-from imagefy.utils.common import MINI_BATCH_KMEANS_TENSORFLOW_WRAPER, INCEPTION_RESNET_TENSORFLOW_WRAPER
-from imagefy.utils.data_utils import BaseLoader
-from imagefy.plugins.tensorboard import TensorboardWraper
+from imagefy_migration.utils.common import MINI_BATCH_KMEANS_TENSORFLOW_WRAPER, INCEPTION_RESNET_TENSORFLOW_WRAPER
+from imagefy_migration.utils.data_utils import BaseLoader
+from imagefy_migration.plugins.tensorboard import TensorboardWraper
 from abc import ABC, abstractmethod
 
 class BaseWraper(ABC):

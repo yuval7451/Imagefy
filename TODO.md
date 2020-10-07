@@ -35,9 +35,11 @@
 - [X] add Documention
 - [X] Big Data test
 - [X] Look at converting keras model to estimator
-- [] Fix import in data_utils
-- [] GPU issue with inference
-- [] Upgrade to TF 2.x
+- [X] Fix import in data_utils
+- [X] Upgrade to TF 2.x
+- [X] GPU issue with inference
+- [] Try upgrading to TF 2.3
+- [] Add Init or BaseSuit init for GPU's Verbosity logging, etc..
 - [] Better readmes for all branches
 - [] Calculate Number of Clusters on you own
 - [] WSL2, Cuda, RAPIDS & CudNN

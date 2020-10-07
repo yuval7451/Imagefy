@@ -11,7 +11,7 @@ from tqdm import tqdm
 import tensorflow as tf
 import concurrent.futures
 from abc import ABC, abstractmethod
-from imagefy.utils.common import INCEPTION_RESNET_TENSORFLOW_WRAPER_OUTPUT, OUTPUT_DIR_PATH, CLUSTER_NAME_FORMAT, MAX_WORKERS, TOP_DEST
+from imagefy_migration.utils.common import INCEPTION_RESNET_TENSORFLOW_WRAPER_OUTPUT, OUTPUT_DIR_PATH, CLUSTER_NAME_FORMAT, MAX_WORKERS, TOP_DEST
 
 class Image():
     """Image -> A Class That holds information about an Image."""
@@ -116,7 +116,6 @@ class TensorLoader(BaseLoader):
         else:
             self.output_dir_path = output_dir_path
 
-    @tf.function
     def mini_batch_kmeans_input_fn(self, batch_size: int, shuffle: bool, num_epochs: int, **kwrags):
         """
         @param batch_size: C{int} -> The batch size for tf.data.Dataset.batch(...).
@@ -129,16 +128,15 @@ class TensorLoader(BaseLoader):
         options.experimental_optimization.autotune_buffers = True
         options.experimental_optimization.autotune_cpu_budget = True
         self.dataset = tf.data.Dataset.list_files(self.dir_path, shuffle=shuffle)
-        self.dataset = self.dataset.map(self._load_tensor, num_parallel_calls=self.AUTOTUNE).repeat(num_epochs)
+        self.dataset = self.dataset.map(self._load_tensor, num_parallel_calls=self.AUTOTUNE)
         if batch_size is not None:
-            self.dataset = self.dataset.batch(batch_size, drop_remainder=True).cache() #.prefetch(self.AUTOTUNE)
-        else:
-            self.dataset = self.dataset.cache() #.prefetch(self.AUTOTUNE)
-        self.dataset = self.dataset.apply((tf.data.experimental.prefetch_to_device('/device:GPU:0', buffer_size=self.AUTOTUNE)))
+            self.dataset = self.dataset.batch(batch_size, drop_remainder=True)
+        
+        self.dataset = self.dataset.prefetch(self.AUTOTUNE).cache().repeat(num_epochs)
+        # dataset = dataset.apply((tf.data.experimental.prefetch_to_device('/device:GPU:0', buffer_size=self.AUTOTUNE))).cache().repeat(num_epochs)
         self.dataset = self.dataset.with_options(options)
         return self.dataset   
  
-    @tf.function
     def inception_input_fn(self):
         """
         @return tf.data.Dataset -> the dataset for Inception
@@ -162,8 +160,8 @@ class TensorLoader(BaseLoader):
         image = tf.image.decode_jpeg(image)
         image = tf.image.convert_image_dtype(image, tf.float32)
         image = tf.image.resize(image, size=[self.image_size, self.image_size])
-        image = image - tf.math.reduce_mean(image, axis=0)
-        image = image / tf.math.reduce_max(tf.abs(image), axis=0)
+        image = image - tf.math.reduce_mean(input_tensor=image, axis=0)
+        image = image / tf.math.reduce_max(input_tensor=tf.abs(image), axis=0)
         image = tf.reshape(image, [-1])
         return image
 
@@ -174,21 +172,22 @@ class TensorLoader(BaseLoader):
         # @return C{tf.Tensor} -> A tensor image, normalized (-1, 1) & flattended.
         """   
         image = tf.io.read_file(image_path)
-        image_path_parts = tf.strings.split(image_path, os.sep, result_type='RaggedTensor')
+        image_path_parts = tf.strings.split(image_path, os.sep)
         image_name = image_path_parts[-1]
         label = image_path_parts[-2]
         image = tf.image.decode_jpeg(image)
         image = tf.image.convert_image_dtype(image, tf.float32)
         image = tf.image.resize(image, size=[224, 224])
-        image = image - tf.math.reduce_mean(image, axis=0)
-        image = image / tf.math.reduce_max(tf.abs(image), axis=0)
+        image = image - tf.math.reduce_mean(input_tensor=image, axis=0)
+        image = image / tf.math.reduce_max(input_tensor=tf.abs(image), axis=0)
         image = tf.reshape(image, [-1])
+        # return image.numpy().flatten().tolist(), label.decode(), image_name.deocde()
         return image, label, image_name
 
     def create_inception_data(self):
         """
         @return C{list} -> A list of Image Objects.
-        @remarks *For the second stage of imagefy, IOWraper neads the iception data as a list of hollow image objcts.
+        @remarks *For the second stage of imagefy_migration, IOWraper neads the iception data as a list of hollow image objcts.
                  *Use this Function to create them.
         """
         inception_data = []
@@ -300,7 +299,7 @@ class IOWraper():
         self.inception_data = inception_data
         self.wraper_output = wraper_output
 
-    def merge_inception_data(self, top: int=3):
+    def merge_inception_data(self, top: int):
         """
         @param top: C{int} -> The top number of images to move from each cluster.
         @remarks *This function is neaded for the second stage of Imagefy.
@@ -314,6 +313,7 @@ class IOWraper():
             image.cluster_n = int(predictor_output._label)
             if predictor_output.top:
                 image.top = True
+
             # image.free() -> Only free if You dont want to use Tensorboard.
             image.flush(prefix=predictor_output.label)
 
@@ -325,9 +325,9 @@ class IOWraper():
                  *This function is neaded for the second stage of Imagefy.
         """
         logging.debug("Moving Data")
-        with tqdm(total=len(self.kmeans_data)) as pbar:
+        with tqdm(total=len([image for image in self.inception_data if image.top])) as pbar:
             with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-                future_to_file_moved = {executor.submit(shutil.copy, image.src_path, image.dst_path): image for image in self.inception_data if image.src_path is not None and image.dst_path is not None and image.top}
+                future_to_file_moved = {executor.submit(shutil.copy, image.src_path, image.dst_path): image for image in self.inception_data if image.top}
                 for future in concurrent.futures.as_completed(future_to_file_moved):
                         result = future.result()
                         pbar.update(1)

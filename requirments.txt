@@ -1,5 +1,13 @@
+<<<<<<< HEAD
 tensorflow-gpu==1.15
 opencv-python
 scikit-learn
 matplotlib
+=======
+tensorflow==2.2
+opencv-python
+scikit-learn
+matplotlib
+tqdm
+>>>>>>> TF2-migration
 imageio
