@@ -9,12 +9,12 @@ import tensorflow as tf
 # tf.compat.v1.disable_eager_execution()
 tf.compat.v1.enable_eager_execution() 
 
-from imagefy_migration.suits.base_suit import BaseSuit
-from imagefy_migration.utils.data_utils import IOWraper, TensorLoader
-from imagefy_migration.utils.common import  BASE_PATH_DEST, OUTPUT_DIR_PATH, DATA_PARAM, TOP_DEST, VERBOSE_DEST, LOADER_DEST, \
+from imagefy.suits.base_suit import BaseSuit
+from imagefy.utils.data_utils import IOWraper, TensorLoader
+from imagefy.utils.common import  BASE_PATH_DEST, OUTPUT_DIR_PATH, DATA_PARAM, TOP_DEST, VERBOSE_DEST, LOADER_DEST, \
     MODEL_NAME_PARAM, BASE_MODEL_DIR_PARAM, OUTPUT_DIR_PATH_PARAM
-from imagefy_migration.wrapers.mini_batch_kmeans_tensorflow_wraper import MiniBatchKmeansTensorflowWraper
-from imagefy_migration.wrapers.inception_resnet_tensorflow_wraper import InceptionResnetTensorflowWraper
+from imagefy.wrapers.mini_batch_kmeans_tensorflow_wraper import MiniBatchKmeansTensorflowWraper
+from imagefy.wrapers.inception_resnet_tensorflow_wraper import InceptionResnetTensorflowWraper
 
 class IntergrationSuit(BaseSuit):
     """IntergrationSuit -> Some Kind of Class that controls everything."""

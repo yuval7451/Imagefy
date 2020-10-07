@@ -24,7 +24,7 @@ Input tree: 'imagefy'
 ================================================================================
 --------------------------------------------------------------------------------
 Processing file 'imagefy\\main.py'
- outputting to 'imagefy_migration\\main.py'
+ outputting to 'imagefy\\main.py'
 --------------------------------------------------------------------------------
 
 
@@ -32,7 +32,7 @@ Processing file 'imagefy\\main.py'
 
 --------------------------------------------------------------------------------
 Processing file 'imagefy\\plugins\\tensorboard.py'
- outputting to 'imagefy_migration\\plugins\\tensorboard.py'
+ outputting to 'imagefy\\plugins\\tensorboard.py'
 --------------------------------------------------------------------------------
 
 75:12: WARNING: *.save requires manual check. (This warning is only applicable if the code saves a tf.Keras model) Keras model.save now saves to the Tensorflow SavedModel format by default, instead of HDF5. To continue saving to HDF5, add the argument save_format='h5' to the save() function.
@@ -41,7 +41,7 @@ Processing file 'imagefy\\plugins\\tensorboard.py'
 
 --------------------------------------------------------------------------------
 Processing file 'imagefy\\suits\\base_suit.py'
- outputting to 'imagefy_migration\\suits\\base_suit.py'
+ outputting to 'imagefy\\suits\\base_suit.py'
 --------------------------------------------------------------------------------
 
 
@@ -49,7 +49,7 @@ Processing file 'imagefy\\suits\\base_suit.py'
 
 --------------------------------------------------------------------------------
 Processing file 'imagefy\\suits\\intergration_suit.py'
- outputting to 'imagefy_migration\\suits\\intergration_suit.py'
+ outputting to 'imagefy\\suits\\intergration_suit.py'
 --------------------------------------------------------------------------------
 
 
@@ -57,7 +57,7 @@ Processing file 'imagefy\\suits\\intergration_suit.py'
 
 --------------------------------------------------------------------------------
 Processing file 'imagefy\\utils\\argument_parser.py'
- outputting to 'imagefy_migration\\utils\\argument_parser.py'
+ outputting to 'imagefy\\utils\\argument_parser.py'
 --------------------------------------------------------------------------------
 
 
@@ -65,7 +65,7 @@ Processing file 'imagefy\\utils\\argument_parser.py'
 
 --------------------------------------------------------------------------------
 Processing file 'imagefy\\utils\\common.py'
- outputting to 'imagefy_migration\\utils\\common.py'
+ outputting to 'imagefy\\utils\\common.py'
 --------------------------------------------------------------------------------
 
 
@@ -73,7 +73,7 @@ Processing file 'imagefy\\utils\\common.py'
 
 --------------------------------------------------------------------------------
 Processing file 'imagefy\\utils\\data_utils.py'
- outputting to 'imagefy_migration\\utils\\data_utils.py'
+ outputting to 'imagefy\\utils\\data_utils.py'
 --------------------------------------------------------------------------------
 
 165:24: INFO: Added keywords to args of function 'tf.math.reduce_mean'
@@ -85,7 +85,7 @@ Processing file 'imagefy\\utils\\data_utils.py'
 
 --------------------------------------------------------------------------------
 Processing file 'imagefy\\utils\\score_utils.py'
- outputting to 'imagefy_migration\\utils\\score_utils.py'
+ outputting to 'imagefy\\utils\\score_utils.py'
 --------------------------------------------------------------------------------
 
 
@@ -93,7 +93,7 @@ Processing file 'imagefy\\utils\\score_utils.py'
 
 --------------------------------------------------------------------------------
 Processing file 'imagefy\\utils\\tensorboard_utils.py'
- outputting to 'imagefy_migration\\utils\\tensorboard_utils.py'
+ outputting to 'imagefy\\utils\\tensorboard_utils.py'
 --------------------------------------------------------------------------------
 
 77:4: WARNING: *.save requires manual check. (This warning is only applicable if the code saves a tf.Keras model) Keras model.save now saves to the Tensorflow SavedModel format by default, instead of HDF5. To continue saving to HDF5, add the argument save_format='h5' to the save() function.
@@ -101,7 +101,7 @@ Processing file 'imagefy\\utils\\tensorboard_utils.py'
 
 --------------------------------------------------------------------------------
 Processing file 'imagefy\\wrapers\\base_wraper.py'
- outputting to 'imagefy_migration\\wrapers\\base_wraper.py'
+ outputting to 'imagefy\\wrapers\\base_wraper.py'
 --------------------------------------------------------------------------------
 
 
@@ -109,7 +109,7 @@ Processing file 'imagefy\\wrapers\\base_wraper.py'
 
 --------------------------------------------------------------------------------
 Processing file 'imagefy\\wrapers\\config.py'
- outputting to 'imagefy_migration\\wrapers\\config.py'
+ outputting to 'imagefy\\wrapers\\config.py'
 --------------------------------------------------------------------------------
 
 
@@ -117,7 +117,7 @@ Processing file 'imagefy\\wrapers\\config.py'
 
 --------------------------------------------------------------------------------
 Processing file 'imagefy\\wrapers\\inception_resnet_tensorflow_wraper.py'
- outputting to 'imagefy_migration\\wrapers\\inception_resnet_tensorflow_wraper.py'
+ outputting to 'imagefy\\wrapers\\inception_resnet_tensorflow_wraper.py'
 --------------------------------------------------------------------------------
 
 55:28: ERROR: Using member tf.contrib.predictor.from_saved_model in deprecated module tf.contrib. tf.contrib.predictor.from_saved_model cannot be converted automatically. tf.contrib will not be distributed with TensorFlow 2.0, please consider an alternative in non-contrib TensorFlow, a community-maintained repository such as tensorflow/addons, or fork the required code.
@@ -125,7 +125,7 @@ Processing file 'imagefy\\wrapers\\inception_resnet_tensorflow_wraper.py'
 
 --------------------------------------------------------------------------------
 Processing file 'imagefy\\wrapers\\mini_batch_kmeans_tensorflow_wraper.py'
- outputting to 'imagefy_migration\\wrapers\\mini_batch_kmeans_tensorflow_wraper.py'
+ outputting to 'imagefy\\wrapers\\mini_batch_kmeans_tensorflow_wraper.py'
 --------------------------------------------------------------------------------
 
 

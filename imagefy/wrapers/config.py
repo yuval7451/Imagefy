@@ -1,6 +1,8 @@
+#!/usr/bin/env python3
+# Author: Yuval Kaneti
 
-
-import os;  os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+#### Imports ####
+import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 from tensorflow.python.training import training_util
 from tensorflow.python.training.basic_session_run_hooks import SecondOrStepTimer
@@ -43,8 +45,7 @@ class KmeansConfig():
     def _summary_hook(self):
         summary_hook = tf.estimator.SummarySaverHook(
             save_steps=1,
-            output_dir=os.path.join(self.base_model_dir), #,'summary',
-            # summary_op=tf.summary.merge_all()
+            output_dir=self.base_model_dir, 
             scaffold=tf.compat.v1.train.Scaffold(summary_op=tf.compat.v1.summary.merge_all())
         ) 
         return summary_hook
@@ -113,4 +114,3 @@ def InceptionConfig():
             allow_soft_placement=True,
             log_device_placement=False
         )
-        

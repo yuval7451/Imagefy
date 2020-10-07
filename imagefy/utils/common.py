@@ -55,3 +55,4 @@ PREDICTOR_INFERENCE_INPUTS = "predictor_inputs"
 INCEPTION_RESNET_INFERENCE_DENSE = "dense"
 OUTPUT_DIR_PATH_PARAM = 'output_dir_path'
 IFERENCE_MODEL_DIR = "D:\\Imagefy\\resources\\models\\InceptionResNetV2\\inference\\1601923417"
+EMBEDDINGS_TENSOR_NAME = "embeddings"
