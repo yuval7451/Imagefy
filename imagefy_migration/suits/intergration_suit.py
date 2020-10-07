@@ -5,13 +5,17 @@
 import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import logging
 import tensorflow as tf
+# tf.compat.v1.disable_v2_behavior()
+# tf.compat.v1.disable_eager_execution()
+tf.compat.v1.enable_eager_execution() 
 
-from imagefy.suits.base_suit import BaseSuit
-from imagefy.utils.data_utils import IOWraper, TensorLoader
-from imagefy.utils.common import  BASE_PATH_DEST, OUTPUT_DIR_PATH, DATA_PARAM, TOP_DEST, VERBOSE_DEST, LOADER_DEST, \
+from imagefy_migration.suits.base_suit import BaseSuit
+from imagefy_migration.utils.data_utils import IOWraper, TensorLoader
+from imagefy_migration.utils.common import  BASE_PATH_DEST, OUTPUT_DIR_PATH, DATA_PARAM, TOP_DEST, VERBOSE_DEST, LOADER_DEST, \
     MODEL_NAME_PARAM, BASE_MODEL_DIR_PARAM, OUTPUT_DIR_PATH_PARAM
-from imagefy.wrapers.mini_batch_kmeans_tensorflow_wraper import MiniBatchKmeansTensorflowWraper
-from imagefy.wrapers.inception_resnet_tensorflow_wraper import InceptionResnetTensorflowWraper
+from imagefy_migration.wrapers.mini_batch_kmeans_tensorflow_wraper import MiniBatchKmeansTensorflowWraper
+from imagefy_migration.wrapers.inception_resnet_tensorflow_wraper import InceptionResnetTensorflowWraper
+
 class IntergrationSuit(BaseSuit):
     """IntergrationSuit -> Some Kind of Class that controls everything."""
     def __init__(self, **kwargs: dict):
@@ -24,13 +28,11 @@ class IntergrationSuit(BaseSuit):
         log_path = os.path.join(self.base_model_dir, "session.log")
         logging.getLogger('tensorflow').addHandler(logging.FileHandler(log_path))
         logging.getLogger().addHandler(logging.FileHandler(log_path))
-        
-        # Asign Parameters
         self.kwargs = kwargs
-        # Verbosity
         self.verbose = self.kwargs.get(VERBOSE_DEST, False)
         logging.getLogger().setLevel(logging.DEBUG if self.verbose else logging.INFO)
         tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO if self.verbose else tf.compat.v1.logging.ERROR)
+
 
         self.WraperOutput = None
         self.IOHandler = None
@@ -41,6 +43,7 @@ class IntergrationSuit(BaseSuit):
                             OUTPUT_DIR_PATH_PARAM: self.output_dir_path})
 
         logging.debug(str(self.kwargs))
+        logging.info(f"Tensorflow is Executing Eagerly: {tf.executing_eagerly()}")
 
     def run(self):
         """
@@ -52,7 +55,6 @@ class IntergrationSuit(BaseSuit):
         self.kwargs.update({DATA_PARAM: self.data, LOADER_DEST: self._loader})
        
         self.kmeans = MiniBatchKmeansTensorflowWraper(**self.kwargs) 
-        self.inception = InceptionResnetTensorflowWraper(**self.kwargs)
 
         self.WraperOutput = self.kmeans.run()
         
@@ -63,9 +65,10 @@ class IntergrationSuit(BaseSuit):
         self.IOHandler.move_kmeans_data()
         logging.info(f"Check {OUTPUT_DIR_PATH} for output")
 
+        self.inception = InceptionResnetTensorflowWraper(**self.kwargs)
         inception_data = self._loader.create_inception_data()
         self.WraperOutput = self.inception.run()
         self.IOHandler.set_inception_data(inception_data=inception_data, wraper_output=self.WraperOutput)
 
-        self.IOHandler.mergeinception_data(self.kwargs.get(TOP_DEST))
+        self.IOHandler.merge_inception_data(self.kwargs.get(TOP_DEST))
         self.IOHandler.move_inception_data()

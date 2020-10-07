@@ -11,7 +11,7 @@ import imageio
 import logging
 import numpy as np
 import tensorflow as tf
-from tensorflow.contrib.tensorboard.plugins import projector
+from tensorboard.plugins import projector
 
 #### Function ####
 def save_embeddings(images_features_labels, save_dir):

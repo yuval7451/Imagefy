@@ -1,5 +1,6 @@
-tensorflow-gpu==1.15
-#keras==2.2.5
+tensorflow==2.2
 opencv-python
 scikit-learn
 matplotlib
+tqdm
+imageio

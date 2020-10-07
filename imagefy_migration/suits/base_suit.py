@@ -6,7 +6,7 @@ import os
 import logging
 import datetime
 from abc import ABC, abstractclassmethod
-from imagefy.utils.common import BASE_PATH_DEST, LOG_DIR, OUTPUT_DIR_PATH
+from imagefy_migration.utils.common import BASE_PATH_DEST, LOG_DIR, OUTPUT_DIR_PATH
 
 class BaseSuit(ABC):
     """BaseSuit -> Some Kind of Class that controls everything."""
