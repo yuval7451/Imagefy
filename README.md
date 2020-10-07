@@ -2,6 +2,7 @@
 
 ## *What is It?*
 ---
+- **This Brunch is under heavy Development, for releases refer to [master](https://github.com/yuval7451/Imagefy/tree/master)**
 - A AI Driven Module that will help you choose the best pictures
 
 ## *How Does It do that?*
