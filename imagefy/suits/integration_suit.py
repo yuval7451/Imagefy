@@ -12,8 +12,8 @@ from imagefy.utils.common import  BASE_PATH_DEST, OUTPUT_DIR_PATH, DATA_PARAM, T
     MODEL_NAME_PARAM, BASE_MODEL_DIR_PARAM, OUTPUT_DIR_PATH_PARAM
 from imagefy.wrapers.mini_batch_kmeans_tensorflow_wraper import MiniBatchKmeansTensorflowWraper
 from imagefy.wrapers.inception_resnet_tensorflow_wraper import InceptionResnetTensorflowWraper
-class IntergrationSuit(BaseSuit):
-    """IntergrationSuit -> Some Kind of Class that controls everything."""
+class IntegrationSuit(BaseSuit):
+    """IntegrationSuit -> Some Kind of Class that controls everything."""
     def __init__(self, **kwargs: dict):
         """
         @param kwargs: C{dict} -> A dict with all parameters passed on Runtime.

@@ -7,16 +7,16 @@
 *.bat
 logs/*
 logs
-__pycache__/
+__pycache__/*
 __init__.py
 test
 .vscode
 *.json
 models
-models/
+models/*
 *.h5
 .vscode
-
-# Logs
+imagefyenv/*
+imagefyenvTF2/*
 logs
 *.log

@@ -5,7 +5,7 @@
 import logging
 import time, datetime
 from imagefy.utils.argument_parser import arg_parser
-from imagefy.suits.intergration_suit import IntergrationSuit
+from imagefy.suits.integration_suit import IntegrationSuit
 
 #### Functions ####
 def main():
@@ -13,7 +13,7 @@ def main():
     t = datetime.datetime.now() 
     logging.info(f"Starting Main at {t}")
     args = arg_parser()
-    suit = IntergrationSuit(**vars(args))
+    suit = IntegrationSuit(**vars(args))
     suit.run()
     end  = time.time() - start
     t = datetime.datetime.now()
