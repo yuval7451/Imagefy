@@ -6,6 +6,7 @@
 
 ## *How Does It do that?*
 ---
+- **This is an older Version of Imagefy that used Tensorflow 1.5, Imagefy with TF2 support is currently in integration [here](https://github.com/yuval7451/Imagefy/tree/integration)**.
 - Imagefy Uses KMeans Clustering & InceptionResNetV2 CNN in order to Group  Images by Similarity and then choose the best image out of every group
 
 ## *Recomended setup*
