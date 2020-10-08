@@ -37,14 +37,16 @@
 - [X] Look at converting keras model to estimator
 - [X] Fix import in data_utils
 - [X] Upgrade to TF 2.x
-- [] Add Init or BaseSuit init for GPU's Verbosity logging, etc..
-- [] Profiling, Debug & TF 2.3
-- [] Better Readmes for all branches, fix typo.
-- [] better Documention in all branches
+- [X] Add Init or BaseSuit init for GPU's Verbosity logging, etc..
+- [X] Profiling, Debug & TF 2.3
+- [X] Better Readmes for all branches, fix typo.
+- [X] better Documention in all branches
+- [X] Automated patamters Tunning
+- [] Warm start with kmeans [https://stackoverflow.com/questions/49846207/tensorflow-estimator-warm-start-from-and-model-dir]
 - [] Fix GPU issue with inference
 - [] tf.distribute.MirroredStrategy
 - [] Try upgrading to TF 2.3
-- [] Calculate Number of Clusters on you own len(data) \\ 10 ?
+- [] Calculate Number of Clusters on you own len(data) // 10 : //13 ?
 - [] WSL2, Cuda, RAPIDS & CudNN
 
 # Sources

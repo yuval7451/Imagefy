@@ -58,12 +58,12 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
                                     num_epochs=self.num_epochs),
                                     hooks=hooks)
                                     
-            score = self.cluster.score(input_fn=lambda: self._input_fn(                                       
+            self.score = self.cluster.score(input_fn=lambda: self._input_fn(                                       
                                         batch_size=self.batch_size,
                                         shuffle=False, 
                                         num_epochs=self.num_epochs))
 
-            logging.info(f"score: {score}")
+            logging.info(f"score: {self.score}")
     
     def _transform(self):
         """

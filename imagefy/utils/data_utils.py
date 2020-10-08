@@ -11,7 +11,8 @@ from tqdm import tqdm
 import tensorflow as tf
 import concurrent.futures
 from abc import ABC, abstractmethod
-from imagefy.utils.common import INCEPTION_RESNET_TENSORFLOW_WRAPER_OUTPUT, OUTPUT_DIR_PATH, CLUSTER_NAME_FORMAT, MAX_WORKERS, TOP_DEST
+from imagefy.utils.common import INCEPTION_RESNET_TENSORFLOW_WRAPER_OUTPUT, OUTPUT_DIR_PATH, CLUSTER_NAME_FORMAT, MAX_WORKERS, \
+    TOP_DEST, INCEPTION_RESNET_IMAGE_SIZE
 
 class Image():
     """Image -> A Class That holds information about an Image."""
@@ -177,7 +178,7 @@ class TensorLoader(BaseLoader):
         label = image_path_parts[-2]
         image = tf.image.decode_jpeg(image)
         image = tf.image.convert_image_dtype(image, tf.float32)
-        image = tf.image.resize(image, size=[224, 224])
+        image = tf.image.resize(image, size=[INCEPTION_RESNET_IMAGE_SIZE, INCEPTION_RESNET_IMAGE_SIZE])
         image = image - tf.math.reduce_mean(input_tensor=image, axis=0)
         image = image / tf.math.reduce_max(input_tensor=tf.abs(image), axis=0)
         image = tf.reshape(image, [-1])
@@ -210,7 +211,6 @@ class TensorLoader(BaseLoader):
             image_list.append(Image(src_path=image_path, data=None, hollow=True))
 
         return image_list
-
 class IOWraper():
     """IOWraper -> An Object which handles multithreaded IO Opartions."""
     def __init__(self, kmeans_data: list, wraper_output: WraperOutput, model_name: str, base_path: str, **kwargs: dict):

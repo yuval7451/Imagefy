@@ -5,14 +5,11 @@
 import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import logging
 import tensorflow as tf
-# tf.compat.v1.disable_v2_behavior()
-# tf.compat.v1.disable_eager_execution()
 tf.compat.v1.enable_eager_execution() 
 
 from imagefy.suits.base_suit import BaseSuit
 from imagefy.utils.data_utils import IOWraper, TensorLoader
-from imagefy.utils.common import  BASE_PATH_DEST, OUTPUT_DIR_PATH, DATA_PARAM, TOP_DEST, VERBOSE_DEST, LOADER_DEST, \
-    MODEL_NAME_PARAM, BASE_MODEL_DIR_PARAM, OUTPUT_DIR_PATH_PARAM
+from imagefy.utils.common import  BASE_PATH_DEST, DATA_PARAM, TOP_DEST, LOADER_DEST
 from imagefy.wrapers.mini_batch_kmeans_tensorflow_wraper import MiniBatchKmeansTensorflowWraper
 from imagefy.wrapers.inception_resnet_tensorflow_wraper import InceptionResnetTensorflowWraper
 
@@ -24,7 +21,7 @@ class IntergrationSuit(BaseSuit):
         @remarks *Curently the bos of the module.
         """
         super().__init__(**kwargs)
-        tf.profiler.experimental.start(self.base_model_dir)
+        # tf.profiler.experimental.start(self.base_model_dir)
 
 
     def run(self):
@@ -56,5 +53,5 @@ class IntergrationSuit(BaseSuit):
         self.IOHandler.merge_inception_data(self.kwargs.get(TOP_DEST))
         self.IOHandler.move_inception_data()
 
-        tf.profiler.experimental.stop()
+        # tf.profiler.experimental.stop()
         logging.info("Finished running Suit")

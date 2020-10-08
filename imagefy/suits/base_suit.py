@@ -67,7 +67,7 @@ class BaseSuit(ABC):
         handler = logging.FileHandler(log_path)
 
         level = logging.DEBUG if self.verbose else logging.INFO
-        tensorflow_level = tf.compat.v1.logging.INFO if self.verbose else tf.compat.v1.logging.WARNING
+        tensorflow_level = tf.compat.v1.logging.INFO if self.verbose else tf.compat.v1.logging.ERROR
         logging.getLogger('tensorflow').addHandler(handler)
         tf.compat.v1.logging.set_verbosity(tensorflow_level)
 
@@ -84,7 +84,7 @@ class BaseSuit(ABC):
         [tf.config.experimental.set_memory_growth(gpu, True) for gpu in gpus]
         tf.config.set_soft_device_placement(True)
         logging.info(f"Tensorflow is Executing Eagerly: {tf.executing_eagerly()}")
-        tf.profiler.experimental.server.start(6009)
+        # tf.profiler.experimental.server.start(6009)
 
     def initialize_kwargs(self):
         self.kwargs.update({

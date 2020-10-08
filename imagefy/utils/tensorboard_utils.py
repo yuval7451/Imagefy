@@ -121,7 +121,7 @@ def save_sprite_image(to_visualise, path, invert=True):
         to_visualise = invert_grayscale(to_visualise)
     sprite_image = create_sprite_image(to_visualise)
 
-    sprite_image =  np.array(sprite_image * 255, dtype=np.uint8)
+    # sprite_image =  np.array(sprite_image * 255, dtype=np.uint8)
     imageio.imwrite(path, sprite_image)
 
 def invert_grayscale(data):
