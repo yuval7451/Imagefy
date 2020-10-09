@@ -42,12 +42,26 @@
 - [X] Better Readmes for all branches, fix typo.
 - [X] better Documention in all branches
 - [X] Automated patamters Tunning
-- [] Warm start with kmeans [https://stackoverflow.com/questions/49846207/tensorflow-estimator-warm-start-from-and-model-dir]
+- [X] look into the params of mini batch kmeans
+- [X] Dataset prefetching dataset
+    **dataset.apply(tf.data.experimental.copy_to_device("/gpu:0")).prefetch()**
+    **tf.data.experimental.prefetch_to_device()**
+- [] Warm start with kmeans - Kmeans doesnt have warm start...
+    *https://stackoverflow.com/questions/49846207/tensorflow-estimator-warm-start-from-and-model-dir*
+- [] Revert to tf1.5 and try 
+    *https://github.com/GoogleCloudPlatform/tf-estimator-tutorials/blob/master/03_Clustering/*
+    *https://github.com/Tony607/Keras_Deep_Clustering/blob/master/Keras-DEC.ipynb*
+    *https://www.dlology.com/blog/how-to-do-unsupervised-clustering-with-keras/*
+- [] Imagenet autoencoder *https://github.com/anikita/ImageNet_Pretrained_Autoencoder*
+- [] Web
+    *https://github.com/imadelh/ML-web-app*
+    *https://heartbeat.fritz.ai/deploy-a-machine-learning-model-as-a-web-application-part-1-a1c1ff624f7a*
+    *https://heartbeat.fritz.ai/deploy-a-machine-learning-model-as-a-web-application-part-2-2f590342b390*
+    *https://www.streamlit.io/*
+    *https://blog.cambridgespark.com/deploying-a-machine-learning-model-to-the-web-725688b851c7*
+    *https://medium.com/@alyafey22/train-test-and-deploy-ml-models-in-the-browser-using-one-notebook-ef0e8a7c29e4*
+    
 - [] Fix GPU issue with inference
 - [] tf.distribute.MirroredStrategy
-- [] Try upgrading to TF 2.3
 - [] Calculate Number of Clusters on you own len(data) // 10 : //13 ?
 - [] WSL2, Cuda, RAPIDS & CudNN
-
-# Sources
-- [Source][https://www.baeldung.com/cs/clustering-unknown-number']

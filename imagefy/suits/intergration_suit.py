@@ -21,7 +21,8 @@ class IntergrationSuit(BaseSuit):
         @remarks *Curently the bos of the module.
         """
         super().__init__(**kwargs)
-        # tf.profiler.experimental.start(self.base_model_dir)
+
+        tf.profiler.experimental.start(self.base_model_dir)
 
 
     def run(self):
@@ -53,5 +54,6 @@ class IntergrationSuit(BaseSuit):
         self.IOHandler.merge_inception_data(self.kwargs.get(TOP_DEST))
         self.IOHandler.move_inception_data()
 
-        # tf.profiler.experimental.stop()
+        tf.profiler.experimental.stop()
+        # tf.summary.trace_export(self.model_name, step=1, profiler_outdir=self.base_model_dir)
         logging.info("Finished running Suit")

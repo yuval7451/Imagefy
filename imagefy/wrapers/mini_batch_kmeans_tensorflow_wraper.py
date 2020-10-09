@@ -31,13 +31,13 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
         @remarks *This is where the action starts.
         @return C{MiniBatchKmeansWraperOutput} -> the clustering result, used for IOWraper.
         """     
-    
         self.cluster = tf.compat.v1.estimator.experimental.KMeans(
             num_clusters=self.num_clusters,
-            use_mini_batch=True,
+            use_mini_batch=False,
             config=self.config.get_run_config(),
-        )        
-        self._train(hooks=[]) # self.config.get_hooks()
+        ) 
+
+        self._train(hooks=[])
         self.wraper_output = self._transform()
         if self._use_tensorboard:
             self._tensorboard(batch_size=self.batch_size)
@@ -50,7 +50,7 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
         @param hooks: C{list} -> A list of hooks for training.
         @remarks *Trains the estimator.
         """
-        with tf.device('/device:GPU:0'):
+        with tf.device('/device:GPU:0'): #GPU
             logging.info("Starting to train")
             self.cluster.train(input_fn=lambda: self._input_fn(                                
                                     batch_size=self.batch_size,

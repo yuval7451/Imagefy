@@ -57,7 +57,6 @@ class InceptionResnetTensorflowWraper(BaseWraper):
             y_predicted = output_dict[INCEPTION_RESNET_INFERENCE_DENSE][0].numpy()
             score = mean_score(y_predicted)
             predictor_output = PredictorOutput(label=label, image_name=image_name, score=score, index=len(predictor_output_list))
-            logging.debug(predictor_output)
             predictor_output_list.append(predictor_output)
                 
         logging.info("Finished making predictions")

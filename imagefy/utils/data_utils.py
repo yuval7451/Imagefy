@@ -117,6 +117,8 @@ class TensorLoader(BaseLoader):
         else:
             self.output_dir_path = output_dir_path
 
+    
+    # @tf.function
     def mini_batch_kmeans_input_fn(self, batch_size: int, shuffle: bool, num_epochs: int, **kwrags):
         """
         @param batch_size: C{int} -> The batch size for tf.data.Dataset.batch(...).
@@ -131,13 +133,17 @@ class TensorLoader(BaseLoader):
         self.dataset = tf.data.Dataset.list_files(self.dir_path, shuffle=shuffle)
         self.dataset = self.dataset.map(self._load_tensor, num_parallel_calls=self.AUTOTUNE)
         if batch_size is not None:
-            self.dataset = self.dataset.batch(batch_size, drop_remainder=True)
+            self.dataset = self.dataset.batch(batch_size, drop_remainder=True).repeat(num_epochs)
         
-        self.dataset = self.dataset.prefetch(self.AUTOTUNE).cache().repeat(num_epochs)
-        # dataset = dataset.apply((tf.data.experimental.prefetch_to_device('/device:GPU:0', buffer_size=self.AUTOTUNE))).cache().repeat(num_epochs)
+        self.dataset = self.dataset.cache()#.prefetch(self.AUTOTUNE)
+        # self.dataset = self.dataset.apply(tf.data.experimental.prefetch_to_device('/device:GPU:0', buffer_size=self.AUTOTUNE))
+        self.dataset = self.dataset.apply(tf.data.experimental.copy_to_device("/device:gpu:0"))
+        self.dataset = self.dataset.prefetch(self.AUTOTUNE)
         self.dataset = self.dataset.with_options(options)
+
         return self.dataset   
  
+    # @tf.function
     def inception_input_fn(self):
         """
         @return tf.data.Dataset -> the dataset for Inception
@@ -147,8 +153,10 @@ class TensorLoader(BaseLoader):
         options.experimental_optimization.autotune_cpu_budget = True
         dataset = tf.data.Dataset.list_files(self.output_dir_path, shuffle=False)
         dataset = dataset.map(self._load_tensor_with_label, num_parallel_calls=self.AUTOTUNE)
+        # dataset = dataset.apply(tf.data.experimental.prefetch_to_device('/device:GPU:0', buffer_size=self.AUTOTUNE))
+        dataset = dataset.apply(tf.data.experimental.copy_to_device("/device:gpu:0"))
+        dataset = dataset.prefetch(self.AUTOTUNE)   
         dataset = dataset.with_options(options)
-        dataset = dataset.prefetch(self.AUTOTUNE)#.cache()   
         return dataset
 
     @tf.function
@@ -182,7 +190,6 @@ class TensorLoader(BaseLoader):
         image = image - tf.math.reduce_mean(input_tensor=image, axis=0)
         image = image / tf.math.reduce_max(input_tensor=tf.abs(image), axis=0)
         image = tf.reshape(image, [-1])
-        # return image.numpy().flatten().tolist(), label.decode(), image_name.deocde()
         return image, label, image_name
 
     def create_inception_data(self):
