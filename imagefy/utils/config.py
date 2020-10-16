@@ -10,6 +10,6 @@ class Config(object):
         params = {
             SIZE_PARAM: 32,
             BASE_PATH_PARAM: "",
-            INFERENCE_MODEL_DIR_PARAM: "imagefy\\inference\\1602108545" 
+            INFERENCE_MODEL_DIR_PARAM: "D:\\Imagefy\\resources\\models\\InceptionResNetV2.1\\inference\\1602108545" 
         }
         return params

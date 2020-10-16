@@ -17,6 +17,7 @@ models/*
 *.h5
 .vscode
 imagefyenv/*
-imagefyenvTF2/*
+imagefy-research-env/*
 logs
 *.log
+TODO.md
