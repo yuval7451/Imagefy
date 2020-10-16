@@ -4,7 +4,7 @@
 
 
 #### Imports ####
-import os; os.environ["CUDA_VISIBLE_DEVICES"] = "-1" # Disable GPU
+import os
 import logging; logger = logging.getLogger('Imagefy')
 import datetime
 import tensorflow as tf
@@ -58,7 +58,7 @@ class BaseSuit(ABC):
         # logger & stuff
         self.initialize_logger()
         # Gpu's
-        # self.initialize_gpu()
+        self.initialize_gpu()
         # Kwargs
         self.initialize_kwargs()
 
@@ -68,21 +68,18 @@ class BaseSuit(ABC):
         # Log files
         logging.getLogger("PIL.TiffImagePlugin").setLevel(logging.ERROR)
 
-        # log_path = os.path.join(self.base_model_dir, LOG_FILENAME)
-        # logger.basicConfig(filename=log_path, filemode='a',level=logger.DEBUG, format='%(levelname)s - %(name)s - %(filename)s - %(funcName)s - %(asctime)s - %(message)s')
-        
-        # FileHandler = logging.FileHandler(log_path)
-        # FileHandler.setLevel(logging.DEBUG)
+        log_path = os.path.join(self.base_model_dir, LOG_FILENAME)        
+        FileHandler = logging.FileHandler(log_path)
+        FileHandler.setLevel(logging.DEBUG)
 
         formatter = logging.Formatter('%(levelname)s - %(name)s - %(filename)s - %(funcName)s - %(asctime)s - %(message)s')
-        # FileHandler.setFormatter(formatter)
-
+        FileHandler.setFormatter(formatter)
 
         tensorflow_level = tf.compat.v1.logging.INFO
-        # logging.getLogger('tensorflow').addHandler(FileHandler)
+        logging.getLogger('tensorflow').addHandler(FileHandler)
         tf.compat.v1.logging.set_verbosity(tensorflow_level)
 
-        # logger.addHandler(FileHandler)
+        logger.addHandler(FileHandler)
         logger.setLevel(logging.INFO)
 
     def initialize_gpu(self):

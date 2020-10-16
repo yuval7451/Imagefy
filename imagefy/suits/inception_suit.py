@@ -55,4 +55,3 @@ class InceptionSuit(BaseSuit):
 
         logger.info("Finished running Suit")
         return self.images
-        # return [image for image in self.images if image.top]
