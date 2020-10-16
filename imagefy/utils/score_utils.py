@@ -1,4 +1,4 @@
-#https://github.com/titu1994/neural-image-assessment/blob/master/utils/score_utils.py
+
 import numpy as np
 
 # calculate mean score for AVA dataset
