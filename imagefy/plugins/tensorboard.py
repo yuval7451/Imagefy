@@ -1,7 +1,7 @@
 # https://github.com/tensorflow/tensorboard/issues/2471
 
 import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-import logging
+import logging 
 import numpy as np
 import tensorflow as tf
 from tensorboard.plugins import projector

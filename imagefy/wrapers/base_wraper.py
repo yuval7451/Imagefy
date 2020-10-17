@@ -3,7 +3,7 @@
 Author: Yuval Kaneti
 """
 #### IMPORTS ####
-import logging
+import logging 
 import numpy as np
 from imagefy.utils.common import MINI_BATCH_KMEANS_TENSORFLOW_WRAPER, INCEPTION_RESNET_TENSORFLOW_WRAPER
 from imagefy.utils.data_utils import BaseLoader

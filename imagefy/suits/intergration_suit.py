@@ -3,7 +3,7 @@
 
 #### Imports ####
 import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-import logging
+import logging 
 import tensorflow as tf
 tf.compat.v1.enable_eager_execution() 
 
@@ -55,5 +55,4 @@ class IntergrationSuit(BaseSuit):
         self.IOHandler.move_inception_data()
 
         tf.profiler.experimental.stop()
-        # tf.summary.trace_export(self.model_name, step=1, profiler_outdir=self.base_model_dir)
         logging.info("Finished running Suit")

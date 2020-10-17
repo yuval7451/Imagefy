@@ -8,7 +8,7 @@ Code Taken from: *http://www.pinchofintelligence.com/simple-introduction-to-tens
 #### Imports ####
 import os;  os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import imageio
-import logging
+import logging 
 import numpy as np
 import tensorflow as tf
 from tensorboard.plugins import projector

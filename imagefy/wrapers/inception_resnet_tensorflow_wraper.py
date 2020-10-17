@@ -5,7 +5,7 @@ Author: Yuval Kaneti
 
 #### Imports ####
 import os;  os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-import logging
+import logging 
 import numpy as np
 import tensorflow as tf
 from imagefy.wrapers.base_wraper import BaseWraper
@@ -13,7 +13,6 @@ from imagefy.utils.data_utils import  WraperOutput
 from imagefy.utils.score_utils import mean_score
 from imagefy.utils.common import IFERENCE_MODEL_DIR, INCEPTION_RESNET_INFERENCE_INPUT, INCEPTION_RESNET_INFERENCE_DENSE
 from imagefy.wrapers.config import InceptionConfig
-from pprint import pformat
 
 class InceptionResnetTensorflowWraper(BaseWraper):
     """InceptionResnetTensorflowWraper -> An implemntion of InceptionResnetV2 in Tensorflow."""

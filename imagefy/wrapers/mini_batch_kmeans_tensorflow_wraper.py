@@ -4,7 +4,7 @@
 
 #### Imports ####
 import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-import logging
+import logging 
 import tensorflow as tf
 from imagefy.wrapers.config import KmeansConfig
 from imagefy.wrapers.base_wraper import BaseWraper

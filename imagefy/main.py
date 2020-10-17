@@ -2,7 +2,7 @@
 # Author: Yuval Kaneti
 
 #### Imports ####
-import logging
+import logging 
 import time
 from imagefy.utils.argument_parser import arg_parser
 from imagefy.suits.intergration_suit import IntergrationSuit

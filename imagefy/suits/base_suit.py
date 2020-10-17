@@ -3,11 +3,11 @@
 
 #### Imports ####
 import os
-import logging
+import logging 
 import datetime
 import tensorflow as tf
 from abc import ABC, abstractclassmethod
-from imagefy.utils.common import BASE_PATH_DEST, LOG_DIR, OUTPUT_DIR_PATH, MODEL_NAME_PARAM,\
+from imagefy.utils.common import BASE_PATH_DEST, LOG_DIR, LOG_FILENAME, OUTPUT_DIR_PATH, MODEL_NAME_PARAM,\
     BASE_PATH_DEST, BASE_MODEL_DIR_PARAM, OUTPUT_DIR_PATH_PARAM
 
 class BaseSuit(ABC):
@@ -54,25 +54,30 @@ class BaseSuit(ABC):
         self.base_model_dir, 
         self.output_dir_path) = self._set_model_directories()
         # Logging & stuff
-        self.initialize_logger()
+        self.initialize_logging()
         # Gpu's
         self.initialize_gpu()
         # Kwargs
         self.initialize_kwargs()
 
-    def initialize_logger(self):
+    def initialize_logging(self):
         # Log files
         #FIX ME:
-        log_path = os.path.join(self.base_model_dir, "session.log")
-        handler = logging.FileHandler(log_path)
-
+        log_path = os.path.join(self.base_model_dir, LOG_FILENAME)        
+        FileHandler = logging.FileHandler(log_path)
+        FileHandler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('%(levelname)s - %(name)s - %(filename)s - %(funcName)s - %(asctime)s - %(message)s')
+        FileHandler.setFormatter(formatter)
+        
         level = logging.DEBUG if self.verbose else logging.INFO
         tensorflow_level = tf.compat.v1.logging.INFO if self.verbose else tf.compat.v1.logging.ERROR
-        logging.getLogger('tensorflow').addHandler(handler)
+        logging.getLogger('tensorflow').addHandler(FileHandler)
         tf.compat.v1.logging.set_verbosity(tensorflow_level)
 
-        logging.getLogger().addHandler(handler)
+        logging.getLogger().addHandler(FileHandler)
         logging.getLogger().setLevel(level)
+
+
 
     def initialize_gpu(self):
         gpu_avilable = len(tf.config.experimental.list_physical_devices('GPU'))

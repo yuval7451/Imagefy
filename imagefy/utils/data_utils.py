@@ -5,7 +5,7 @@ import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import sys
 import glob
 import shutil
-import logging
+import logging 
 import numpy as np
 from tqdm import tqdm
 import tensorflow as tf
@@ -113,12 +113,11 @@ class TensorLoader(BaseLoader):
         self.model_name = model_name
         self.base_path = base_path
         if output_dir_path is None:
-            self.output_dir_path = self.dir_path #os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name)
+            self.output_dir_path = self.dir_path
         else:
             self.output_dir_path = output_dir_path
 
     
-    # @tf.function
     def mini_batch_kmeans_input_fn(self, batch_size: int, shuffle: bool, num_epochs: int, **kwrags):
         """
         @param batch_size: C{int} -> The batch size for tf.data.Dataset.batch(...).
@@ -143,7 +142,6 @@ class TensorLoader(BaseLoader):
 
         return self.dataset   
  
-    # @tf.function
     def inception_input_fn(self):
         """
         @return tf.data.Dataset -> the dataset for Inception
