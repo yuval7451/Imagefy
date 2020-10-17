@@ -16,7 +16,8 @@ models
 models/*
 *.h5
 .vscode
+.vscode/*
 imagefyenv/*
-imagefyenvTF2/*
 logs
 *.log
+TODO.md
