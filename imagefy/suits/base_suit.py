@@ -42,13 +42,13 @@ class BaseSuit(ABC):
         current_time = datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
         model_name = f"{self.name}-{current_time}" 
         base_path = base_path
-        base_model_dir = os.path.join(base_path, LOG_DIR, model_name)
-        output_dir_path = os.path.join(base_path, OUTPUT_DIR_PATH, model_name, "*", "*")
+        base_model_dir = os.path.join(base_path, LOG_DIR, model_name) # type: ignore
+        output_dir_path = os.path.join(base_path, OUTPUT_DIR_PATH, model_name, "*", "*") # type: ignore
         os.makedirs(base_model_dir)
         return (model_name, base_path, base_model_dir, output_dir_path)
 
     def Initialize(self):
-        # importent directories for the model
+        # NOTE importent directories for the model
         (self.model_name, 
         self.base_path, 
         self.base_model_dir, 
@@ -62,7 +62,7 @@ class BaseSuit(ABC):
 
     def initialize_logging(self):
         # Log files
-        #FIX ME:
+        #FIXME:
         log_path = os.path.join(self.base_model_dir, LOG_FILENAME)        
         FileHandler = logging.FileHandler(log_path)
         FileHandler.setLevel(logging.DEBUG)
@@ -77,25 +77,22 @@ class BaseSuit(ABC):
         logging.getLogger().addHandler(FileHandler)
         logging.getLogger().setLevel(level)
 
-
-
     def initialize_gpu(self):
         gpu_avilable = len(tf.config.experimental.list_physical_devices('GPU'))
         logging.info(f"Num GPUs Available: {gpu_avilable}") 
-        gpu_log_level = False #True if self.verbose else False
+        gpu_log_level = False
         tf.debugging.set_log_device_placement(gpu_log_level)
         logging.info(f"Logging GPU device placement: {gpu_log_level}")
         gpus = tf.config.experimental.list_physical_devices('GPU')
         [tf.config.experimental.set_memory_growth(gpu, True) for gpu in gpus]
         tf.config.set_soft_device_placement(True)
         logging.info(f"Tensorflow is Executing Eagerly: {tf.executing_eagerly()}")
-        # tf.profiler.experimental.server.start(6009)
 
     def initialize_kwargs(self):
         self.kwargs.update({
             MODEL_NAME_PARAM: self.model_name, 
             BASE_PATH_DEST: self.base_path, 
             BASE_MODEL_DIR_PARAM: self.base_model_dir,
-            OUTPUT_DIR_PATH_PARAM: self.output_dir_path})
+            OUTPUT_DIR_PATH_PARAM: self.output_dir_path}) # type: ignore
 
         logging.debug(str(self.kwargs))

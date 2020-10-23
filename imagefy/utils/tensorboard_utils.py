@@ -1,11 +1,12 @@
 #! /usr/bin/env python3
 """
 Author: Yuval Kaneti
-Code Taken from: *http://www.pinchofintelligence.com/simple-introduction-to-tensorboard-embedding-visualisation/
-                 *https://github.com/nlml/np-to-tf-embeddings-visualiser
+Code Taken from: 
+                *http://www.pinchofintelligence.com/simple-introduction-to-tensorboard-embedding-visualisation/
+                *https://github.com/nlml/np-to-tf-embeddings-visualiser
 """
 
-#### Imports ####
+## Imports
 import os;  os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import imageio
 import logging 
@@ -13,14 +14,15 @@ import numpy as np
 import tensorflow as tf
 from tensorboard.plugins import projector
 
-#### Function ####
+## Function
 def save_embeddings(images_features_labels, save_dir):
     """
-    @remarks Function to save embeddings (with corresponding labels and images) to a
-        specified directory. Point tensorboard to that directory with
-        tensorboard --logdir=<save_dir> and your embeddings will be viewable.
+    @remarks:
+        *Function to save embeddings (with corresponding labels and images) to a
+        *specified directory. Point tensorboard to that directory with
+        *tensorboard --logdir=<save_dir> and your embeddings will be viewable.
     
-    @parama images_features_labels: C{dict}
+    @parama images_features_labels: C{dict} -> 
         each key in the dict should be the desired name for that embedding, and 
         each element should be a list of [images, embeddings, labels] where 
         images are a numpy array of images between 0. and 1. of shape [N*W*H*D] 

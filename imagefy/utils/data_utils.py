@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 #Author: Yuval Kaneti
 
 import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -10,13 +9,14 @@ import numpy as np
 from tqdm import tqdm
 import tensorflow as tf
 import concurrent.futures
+from typing import List
 from abc import ABC, abstractmethod
 from imagefy.utils.common import INCEPTION_RESNET_TENSORFLOW_WRAPER_OUTPUT, OUTPUT_DIR_PATH, CLUSTER_NAME_FORMAT, MAX_WORKERS, \
     TOP_DEST, INCEPTION_RESNET_IMAGE_SIZE
 
 class Image():
     """Image -> A Class That holds information about an Image."""
-    def __init__(self, src_path : str, data : list, hollow : bool=False):
+    def __init__(self, src_path: str, data: list, hollow: bool):
         """
         @param src_path: C{str} -> The src path of the image
         @param data: C{list} -> A np.array.flatten() containing the image data
@@ -29,17 +29,15 @@ class Image():
         self.hollow = hollow
         self.data = data
         self.top = False
-        if not hollow:
-            self.shape = self.data.shape
-        else:
-            self.shape = (None,)
+        self.shape = (None,)
     
     def __str__(self):
         return f"src: {self.src_path}, dst: {self.dst_path}, cluster: {self.cluster_n}, hollow: {self.hollow}, top {self.top}"
 
     def free(self):
         """
-        @remarks *Deletes the image data from memory.
+        @remarks:
+                 *Deletes the image data from memory.
                  *Should be Tested to make sure it actually does somthing.
         """
         logging.debug(f"Freeing {sys.getsizeof(self.data)} bytes from {self.basename}")
@@ -48,7 +46,8 @@ class Image():
 
     def flush(self, prefix=None):
         """
-        @remarks *Only if self.dst_dir was chosen the dst_path can be filled.
+        @remarks:
+                 *Only if self.dst_dir was chosen the dst_path can be filled.
                  *Can only be used after IOWraper.merge_data() was invoked.
         """
         if self.dst_dir:
@@ -65,7 +64,8 @@ class WraperOutput(ABC):
         """
         @param n_cluster: C{int} -> The nmber of clusters.
         @param cluster_labels: C{list} -> the corosponding cluster index ordered by the data originial order.
-        @remarks *DO NOT USE THIS CLASS, inherite From it.
+        @remarks:
+                 !DO NOT USE THIS CLASS, inherite From it.
         """
         super().__init__()
         self.n_clusters = n_clusters
@@ -89,13 +89,14 @@ class BaseLoader(ABC):
     @abstractmethod
     def run(self):
         """
-        @remarks *Legecy Fucntion for suported DataLoader.
+        @remarks:
+                 *Legecy Fucntion for suported DataLoader.
         """
         logging.info(f"Starting {self.name}")
     
 class TensorLoader(BaseLoader):
     """TensorLoader -> A Scalbles solution for loading data using tf.data.Dataset API."""
-    def __init__(self, model_name: str, base_path: str, output_dir_path: str=None, **kwargs : dict):
+    def __init__(self, model_name: str, base_path: str, output_dir_path: str=None, **kwargs : dict) -> TensorLoader:
         """
         @param model_name: C{str} -> The model name, Taken for BaseSuit.model_name.
         @param base_path: C{str} -> The base path for logs & output, Taken from BaseSuit.base_path.
@@ -108,7 +109,7 @@ class TensorLoader(BaseLoader):
         super().__init__(**kwargs)
         self.AUTOTUNE = tf.data.experimental.AUTOTUNE
         self.dataset = None
-        self._image_names = np.asarray([image_name for image_name in glob.glob(self.dir_path)])
+        self._image_names = np.ndarray([image_name for image_name in glob.glob(self.dir_path)])
 
         self.model_name = model_name
         self.base_path = base_path
@@ -116,9 +117,8 @@ class TensorLoader(BaseLoader):
             self.output_dir_path = self.dir_path
         else:
             self.output_dir_path = output_dir_path
-
-    
-    def mini_batch_kmeans_input_fn(self, batch_size: int, shuffle: bool, num_epochs: int, **kwrags):
+   
+    def mini_batch_kmeans_input_fn(self, batch_size: int, shuffle: bool, num_epochs: int, **kwrags: dict) -> tf.data.Dataset:
         """
         @param batch_size: C{int} -> The batch size for tf.data.Dataset.batch(...).
         @param shuffle: C{bool} -> Whether to shuffle the Dataset (during .list_files for better preformence).
@@ -135,14 +135,14 @@ class TensorLoader(BaseLoader):
             self.dataset = self.dataset.batch(batch_size, drop_remainder=True).repeat(num_epochs)
         
         self.dataset = self.dataset.cache()#.prefetch(self.AUTOTUNE)
-        # self.dataset = self.dataset.apply(tf.data.experimental.prefetch_to_device('/device:GPU:0', buffer_size=self.AUTOTUNE))
+        # ?self.dataset = self.dataset.apply(tf.data.experimental.prefetch_to_device('/device:GPU:0', buffer_size=self.AUTOTUNE))
         self.dataset = self.dataset.apply(tf.data.experimental.copy_to_device("/device:gpu:0"))
         self.dataset = self.dataset.prefetch(self.AUTOTUNE)
         self.dataset = self.dataset.with_options(options)
 
         return self.dataset   
  
-    def inception_input_fn(self):
+    def inception_input_fn(self) -> tf.data.Dataset:
         """
         @return tf.data.Dataset -> the dataset for Inception
         """
@@ -151,14 +151,14 @@ class TensorLoader(BaseLoader):
         options.experimental_optimization.autotune_cpu_budget = True
         dataset = tf.data.Dataset.list_files(self.output_dir_path, shuffle=False)
         dataset = dataset.map(self._load_tensor_with_label, num_parallel_calls=self.AUTOTUNE)
-        # dataset = dataset.apply(tf.data.experimental.prefetch_to_device('/device:GPU:0', buffer_size=self.AUTOTUNE))
+        # ?dataset = dataset.apply(tf.data.experimental.prefetch_to_device('/device:GPU:0', buffer_size=self.AUTOTUNE))
         dataset = dataset.apply(tf.data.experimental.copy_to_device("/device:gpu:0"))
         dataset = dataset.prefetch(self.AUTOTUNE)   
         dataset = dataset.with_options(options)
         return dataset
 
     @tf.function
-    def _load_tensor(self, image_path: str):
+    def _load_tensor(self, image_path: str) -> tf.Tensor:
         """
         @param image_path: C{tf.Tensor} -> The image path Tensor, created by tf.data.Dataset.list_files(...).
         @return C{tf.Tensor} -> A tensor image, normalized (-1, 1) & flattended.
@@ -167,16 +167,16 @@ class TensorLoader(BaseLoader):
         image = tf.image.decode_jpeg(image)
         image = tf.image.convert_image_dtype(image, tf.float32)
         image = tf.image.resize(image, size=[self.image_size, self.image_size])
-        image = image - tf.math.reduce_mean(input_tensor=image, axis=0)
+        image = image - tf.math.reduce_mean(input_tensor=image, axis=0) # type: ignore
         image = image / tf.math.reduce_max(input_tensor=tf.abs(image), axis=0)
         image = tf.reshape(image, [-1])
         return image
 
     @tf.function
-    def _load_tensor_with_label(self, image_path: str):
+    def _load_tensor_with_label(self, image_path: str) -> tf.Tensor:
         """
         @param image_path: C{tf.Tensor} -> The image path Tensor, created by tf.data.Dataset.list_files(...).
-        # @return C{tf.Tensor} -> A tensor image, normalized (-1, 1) & flattended.
+        @return C{tf.Tensor} -> A tensor image, label & image name
         """   
         image = tf.io.read_file(image_path)
         image_path_parts = tf.strings.split(image_path, os.sep)
@@ -185,15 +185,16 @@ class TensorLoader(BaseLoader):
         image = tf.image.decode_jpeg(image)
         image = tf.image.convert_image_dtype(image, tf.float32)
         image = tf.image.resize(image, size=[INCEPTION_RESNET_IMAGE_SIZE, INCEPTION_RESNET_IMAGE_SIZE])
-        image = image - tf.math.reduce_mean(input_tensor=image, axis=0)
+        image = image - tf.math.reduce_mean(input_tensor=image, axis=0) # type: ignore
         image = image / tf.math.reduce_max(input_tensor=tf.abs(image), axis=0)
         image = tf.reshape(image, [-1])
         return image, label, image_name
 
-    def create_inception_data(self):
+    def create_inception_data(self) -> List[Image]:
         """
         @return C{list} -> A list of Image Objects.
-        @remarks *For the second stage of imagefy, IOWraper neads the iception data as a list of hollow image objcts.
+        @remarks:
+                 *For the second stage of imagefy, IOWraper neads the iception data as a list of hollow image objcts.
                  *Use this Function to create them.
         """
         inception_data = []
@@ -202,11 +203,12 @@ class TensorLoader(BaseLoader):
 
         return inception_data
 
-    def run(self, **kwrags):
+    def run(self, **kwrags: dict) -> List[Image]:
         """
         @param kwargs: C{dict} -> for future needs.
-        @remarks *A simple function the will list all the supported images in a folder.
-                 *The list of supported image types can be found at @common.IMAGE_TYPES.
+        @remarks:
+                *A simple function the will list all the supported images in a folder.
+                *The list of supported image types can be found at @common.IMAGE_TYPES.
         @return C{list} -> A list of `hollow` Image Objects for IOWraper with KmeansTensorflowWraper
         """
         logging.debug("Listing Images")
@@ -216,13 +218,15 @@ class TensorLoader(BaseLoader):
             image_list.append(Image(src_path=image_path, data=None, hollow=True))
 
         return image_list
+
 class IOWraper():
     """IOWraper -> An Object which handles multithreaded IO Opartions."""
     def __init__(self, kmeans_data: list, wraper_output: WraperOutput, model_name: str, base_path: str, **kwargs: dict):
         """
         @param kmeans_data: C{list} -> A List of Image Objects.
         @param wraper_output: C{WraperOutput} -> The Output returned by on of the @BaseWrapers.
-        @remarks *@self.wraper_output can be any of the inherited object from WraperOutput.
+        @remarks:
+                 *@self.wraper_output can be any of the inherited object from WraperOutput.
                  *@self._clean is invoked on __init__, it will remove all the old cluster output directories.    
         """
         self.kmeans_data = kmeans_data
@@ -230,11 +234,12 @@ class IOWraper():
         self.wraper_output = wraper_output
         self.model_name = model_name
         self.base_path = base_path
-        # self._clean() DONT USE
+        # NOTE self._clean() is only used to remove the output directory.
 
     def _clean(self):
         """
-        @remarks *Will remove all the old cluster output directories at @OUTPUT_DIR_PATH.
+        @remarks:
+                 *Will remove all the old cluster output directories at @OUTPUT_DIR_PATH.
                  *Using shutil.rmtree is dangerous, Take a Good look at @OUTPUT_DIR_PATH.
         """
         logging.debug("Cleaning Up from last run")
@@ -243,7 +248,8 @@ class IOWraper():
 
     def merge_kmeans_data(self):
         """
-        @remarks *will use the data from self.wraper_output (@WraperOutput object) to set the Image.dst_fir & Image.cluster_n.
+        @remarks:
+                 *will use the data from self.wraper_output (@WraperOutput object) to set the Image.dst_fir & Image.cluster_n.
                  *This function must be called befor @IOWraper.move_data().
                  *A usual use case will look like this:
                   IOWraper.create_output_dirs()
@@ -254,12 +260,13 @@ class IOWraper():
         for (image, cluster_label) in zip(self.kmeans_data, self.wraper_output.cluster_labels):
             image.dst_dir = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, CLUSTER_NAME_FORMAT.format(cluster_label))
             image.cluster_n = int(cluster_label)
-            # image.free() -> Only free if You dont want to use Tensorboard.
+            # ?image.free() -> Only free if You dont want to use Tensorboard.
             image.flush()
 
     def move_kmeans_data(self):
         """
-        @remarks *Will Copy The Images from Image.src_path to Image.dst_path Using shutil & ThreadPoolExecutor(@MAX_WORKERS)
+        @remarks:
+                 *Will Copy The Images from Image.src_path to Image.dst_path Using shutil & ThreadPoolExecutor(@MAX_WORKERS)
                  *@IOWraper.merge_data MUST be invoked befor this function or a RuntimeError will be raised.
                  *Once shutil.copy is invoked with image.dst_path = None. No Warning is given at this stage.
         """
@@ -275,7 +282,8 @@ class IOWraper():
 
     def create_output_dirs(self):
         """
-        @remarks *A simple Function that will Create multiple directories using multiple Workers.
+        @remarks:
+                 *A simple Function that will Create multiple directories using multiple Workers.
                  *ThreadPoolExecutor(@MAX_WORKERS).
                  *Might not be neaded for a small amount of directories.
                  *@IOWraper.move_data() can't be invoked befor this function, not output directories will exist.
@@ -307,7 +315,8 @@ class IOWraper():
     def merge_inception_data(self, top: int):
         """
         @param top: C{int} -> The top number of images to move from each cluster.
-        @remarks *This function is neaded for the second stage of Imagefy.
+        @remarks:
+                 *This function is neaded for the second stage of Imagefy.
         """
         if self.inception_data is None or self.wraper_output.name != INCEPTION_RESNET_TENSORFLOW_WRAPER_OUTPUT:
             raise RuntimeError("inception data is None or wraper_output is the kmeans one, use IOWraper.set_inception_data(...) to set these varibles")
@@ -319,12 +328,13 @@ class IOWraper():
             if predictor_output.top:
                 image.top = True
 
-            # image.free() -> Only free if You dont want to use Tensorboard.
+            # ?image.free() -> Only free if You dont want to use Tensorboard.
             image.flush(prefix=predictor_output.label)
 
     def move_inception_data(self):
         """
-        @remarks *Will Copy The Images from Image.src_path to Image.dst_path Using shutil & ThreadPoolExecutor(@MAX_WORKERS)
+        @remarks:
+                 *Will Copy The Images from Image.src_path to Image.dst_path Using shutil & ThreadPoolExecutor(@MAX_WORKERS)
                  *@IOWraper.merge_data MUST be invoked befor this function or a RuntimeError will be raised.
                  *Once shutil.copy is invoked with image.dst_path = None. No Warning is given at this stage.
                  *This function is neaded for the second stage of Imagefy.

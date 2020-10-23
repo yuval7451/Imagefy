@@ -1,4 +1,5 @@
-#! /usr/bin/env python3
+#Author: Yuval Kaneti
+
 import os
 import argparse
 from imagefy.utils.common import IMAGE_SIZE, MINI_KMEANS_NUM_EPOCHS, EPOCHS_DEST, DIR_DEST, TOP_DEST, TOP_PARAM, VERBOSE_DEST, \

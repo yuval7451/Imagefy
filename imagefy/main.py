@@ -1,13 +1,12 @@
-#!/usr/bin/env python3
-# Author: Yuval Kaneti
+=# Author: Yuval Kaneti
 
-#### Imports ####
+## Imports 
 import logging 
 import time
 from imagefy.utils.argument_parser import arg_parser
 from imagefy.suits.intergration_suit import IntergrationSuit
 
-#### Functions ####
+## Functions 
 def main():
     start = time.time()
 

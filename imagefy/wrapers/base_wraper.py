@@ -2,17 +2,17 @@
 """
 Author: Yuval Kaneti
 """
-#### IMPORTS ####
+## IMPORTS
 import logging 
 import numpy as np
 from imagefy.utils.common import MINI_BATCH_KMEANS_TENSORFLOW_WRAPER, INCEPTION_RESNET_TENSORFLOW_WRAPER
-from imagefy.utils.data_utils import BaseLoader
+from imagefy.utils.data_utils import BaseLoader, TensorLoader, WraperOutput
 from imagefy.plugins.tensorboard import TensorboardWraper
 from abc import ABC, abstractmethod
 
 class BaseWraper(ABC):
     """BaseWraper -> An Abstract Class for TensorflowWrapers."""
-    def __init__(self, data: list, tensorboard: bool, loader: BaseLoader, base_model_dir: str, **kwrags):
+    def __init__(self, data: list, tensorboard: bool, loader: TensorLoader, base_model_dir: str, **kwrags):
         """
         @param data: C{list} -> A list of `hollow` Image object used for IOWraper.
         @param tensrboard :C{bool} -> Whether to log tensorboard files or not.
@@ -22,7 +22,7 @@ class BaseWraper(ABC):
         @local name: C{str} -> the name of the class, including parents.
         @local _input_functions: C{list} -> A list of all suported input functions provided bu Loaders.
         @local _input_fn: C{callable} -> The input function The Wraper will use, Chosen by his name.
-        @local wraper_output: C{BaseWraper} -> A placeholder for the wraper output.
+        @local wraper_output: C{WraperOutput} -> A placeholder for the wraper output.
         """
         self._data = data
         self._use_tensorboard = tensorboard
@@ -35,13 +35,14 @@ class BaseWraper(ABC):
             INCEPTION_RESNET_TENSORFLOW_WRAPER: self._loader.inception_input_fn,
         }
         self._input_fn = self._input_functions.get(self.name)
-        self.wraper_output = None
+        self.wraper_output: WraperOutput
         logging.debug(f"Initilazing {self.name}")
 
     @abstractmethod
     def run(self):
         """
-        @remarks *abstract method run.
+        @remarks:
+                 *abstract method run.
         """
         logging.info(f"Starting {self.name}")
 
@@ -50,7 +51,7 @@ class BaseWraper(ABC):
         @return C{tuple} -> [Image.data], [Image.src_path]
         @remarks *..
         """
-        X = np.asarray([ImageObj.data for ImageObj in self._data])
+        X = np.ndarray([ImageObj.data for ImageObj in self._data])
         filenames = [ImageObj.src_path for ImageObj in self._data]
         return (X, filenames)
 
@@ -64,7 +65,8 @@ class BaseWraper(ABC):
     def _tensorboard(self, batch_size: int):
         """
         @param batch_size: C{int} -> used for the Tensorboard Dataset Loader.
-        @remarks *sometimes labels & filenames dont match, they will be truncated to the shortest one. 
+        @remarks:
+                 *sometimes labels & filenames dont match, they will be truncated to the shortest one. 
         """
         labels = self.wraper_output.cluster_labels
         filenames = self._loader._image_names

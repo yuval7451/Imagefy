@@ -1,10 +1,8 @@
-#!/usr/bin/env python3
 # Author: Yuval Kaneti
 
 import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-import tensorflow as tf
 
-#### CONSTANTS ####
+## CONSTANTS 
 WEIGHTS_FOLDER_PATH = "D:\\Datasets\\Imagefy\\weights"
 IMAGE_SIZE = 224
 INCEPTION_RESNET_IMAGE_SIZE = 224
@@ -55,6 +53,6 @@ INCEPTION_RESNET_INFERENCE_INPUT = "input_1"
 PREDICTOR_INFERENCE_INPUTS = "predictor_inputs"
 INCEPTION_RESNET_INFERENCE_DENSE = "dense"
 OUTPUT_DIR_PATH_PARAM = 'output_dir_path'
-IFERENCE_MODEL_DIR =  "D:\\Imagefy\\resources\\models\\InceptionResNetV2.1\\inference\\1602108545" # "D:\\Imagefy\\resources\\models\\InceptionResNetV2\\inference\\1601923417"
+IFERENCE_MODEL_DIR =  "D:\\Imagefy\\resources\\models\\InceptionResNetV2.1\\inference\\1602108545"
 EMBEDDINGS_TENSOR_NAME = "embeddings"
 LOG_FILENAME = 'session.log'

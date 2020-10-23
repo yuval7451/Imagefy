@@ -3,7 +3,7 @@
 Author: Yuval Kaneti
 """
 
-#### Imports ####
+## Imports
 import os;  os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import logging 
 import numpy as np
@@ -29,10 +29,11 @@ class InceptionResnetTensorflowWraper(BaseWraper):
         self.config = InceptionConfig()
         self.predictor = tf.saved_model.load(self.inference_model_dir) 
         
-    def run(self):
+    def run(self) -> InceptionResnetTensorflowWraperOutput: # type: ignore
         """
-        @remarks *This is where the action starts.
         @return C{InceptionResnetTensorflowWraperOutput} -> the clustering result, used for IOWraper.
+        @remarks:
+                 *This is where the action starts.
         """     
         logging.info(f"Starting {self.name}")
         self.wraper_output = self.predict()
@@ -42,10 +43,11 @@ class InceptionResnetTensorflowWraper(BaseWraper):
         
         return self.wraper_output
 
-    def predict(self):
+    def predict(self) -> InceptionResnetTensorflowWraperOutput: # type: ignore
         """
         @return C{InceptionResnetTensorflowWraperOutput} -> the Predicted output, will be used for IOWraper.
-        @remarks *Loads the inference model and predicts images score.
+        @remarks:
+                 *Loads the inference model and predicts images score.
         """
         self.dataset = self._input_fn()
         logging.info("Starting to make prediction")
@@ -62,25 +64,25 @@ class InceptionResnetTensorflowWraper(BaseWraper):
 
         return InceptionResnetTensorflowWraperOutput(predictor_output_list=predictor_output_list)
 
-    def _predict_one(self, image):
+    def _predict_one(self, image) -> dict:
         """
         @param image: C{list} -> A Flattened Image.
         @return C{np.ndarray} -> A numpy array length 10 containing the score.
         """
         with tf.device('/device:GPU:0'): 
             example = tf.train.Example()
-            example.features.feature[INCEPTION_RESNET_INFERENCE_INPUT].float_list.value.extend(image)
-            return self.predictor.signatures["serving_default"](predictor_inputs=tf.constant([example.SerializeToString()]))
+            example.features.feature[INCEPTION_RESNET_INFERENCE_INPUT].float_list.value.extend(image) # type: ignore
+            return self.predictor.signatures["serving_default"](predictor_inputs=tf.constant([example.SerializeToString()])) # type: ignore
 
-    def pre_process_data(self, image: np.ndarray, label: bytes, image_name: bytes):
+    def pre_process_data(self, image: np.ndarray, label: bytes, image_name: bytes) -> tuple:
         """
         @param image: C{np.ndarray} -> The Image data .
         @param label: C{bytes} -> The image source cluster.
         @param image_name: C{bytes} -> The image name.
         @return C{tuple} -> the pre proccesed data
         """
-        label = label.decode()  
-        image_name = image_name.decode() 
+        label = label.decode() # type: ignore
+        image_name = image_name.decode() # type: ignore
         image = image.flatten().tolist()
         return (image, label, image_name)
 
@@ -140,7 +142,8 @@ class InceptionResnetTensorflowWraperOutput(WraperOutput):
     def _sort(self):
         """
         @return C{dict} -> A dict where each key is a label and a value is a list of PredictorOutput Objects Sorted by their Score.
-        @remarks *Sorts PredictorOutput Objects by their Score.
+        @remarks:
+                 *Sorts PredictorOutput Objects by their Score.
         """
         sorted_outputs = {}
         for label, group in self.grouped_outputs.items():
@@ -152,7 +155,8 @@ class InceptionResnetTensorflowWraperOutput(WraperOutput):
         """
         @param output: C{list} -> The output of self.top(...), A list of PredictorOutput, some will have .top=True.
         @return C{list} -> A list of PredictorOutput Objects ordered by the .index variable.
-        @remarks *Reorders a list of PredictorOutput by their .index variable. 
+        @remarks:
+                 *Reorders a list of PredictorOutput by their .index variable. 
         """
         ordered_outputs = [None for i in range(len(outputs))]
         for output in outputs:
@@ -164,7 +168,8 @@ class InceptionResnetTensorflowWraperOutput(WraperOutput):
         """
         @param k: C{int} -> the number of element to consider as top from each cluster.
         @returns C{list} -> A list of PredictorOutput, while the top ones haveing their top=True, used in IOWraper.
-        @remarks *Given a k parameter it takes the top K PredictorOutput from every cluster by their score and sets their top=True. 
+        @remarks:
+                 *Given a k parameter it takes the top K PredictorOutput from every cluster by their score and sets their top=True. 
         """
         outputs = []
         for label, group in self.sorted_outputs.items():

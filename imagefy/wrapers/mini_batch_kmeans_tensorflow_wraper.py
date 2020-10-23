@@ -1,8 +1,6 @@
-#!/usr/bin/env python3
 # Author: Yuval Kaneti
 
-
-#### Imports ####
+## Imports
 import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import logging 
 import tensorflow as tf
@@ -28,8 +26,9 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
 
     def run(self):
         """
-        @remarks *This is where the action starts.
         @return C{MiniBatchKmeansWraperOutput} -> the clustering result, used for IOWraper.
+        @remarks:
+                 *This is where the action starts.
         """     
         self.cluster = tf.compat.v1.estimator.experimental.KMeans(
             num_clusters=self.num_clusters,
@@ -37,26 +36,24 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
             config=self.config.get_run_config(),
         ) 
 
-        self._train(hooks=[])
+        self._train()
         self.wraper_output = self._transform()
         if self._use_tensorboard:
             self._tensorboard(batch_size=self.batch_size)
         
         return self.wraper_output
 
-    @tf.function
-    def _train(self, hooks: list):
+    def _train(self):
         """
-        @param hooks: C{list} -> A list of hooks for training.
-        @remarks *Trains the estimator.
+        @remarks:
+                 *Trains the estimator.
         """
-        with tf.device('/device:GPU:0'): #GPU
+        with tf.device('/device:GPU:0'):
             logging.info("Starting to train")
             self.cluster.train(input_fn=lambda: self._input_fn(                                
                                     batch_size=self.batch_size,
                                     shuffle=False, 
-                                    num_epochs=self.num_epochs),
-                                    hooks=hooks)
+                                    num_epochs=self.num_epochs))
                                     
             self.score = self.cluster.score(input_fn=lambda: self._input_fn(                                       
                                         batch_size=self.batch_size,
@@ -67,11 +64,12 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
     
     def _transform(self):
         """
-        @remarks *splits the input data to each cluster.
         @return C{MiniBatchKmeansWraperOutput}  -> The clustering output, used for IOWraper.
+        @remarks:
+                 *splits the input data to each cluster.
         """
         with tf.device('/device:gpu:0'):
-            # map the input points to their clusters
+            # ?map the input points to their clusters
             logging.info("starting to Transform the data")
             cluster_indices = list(self.cluster.predict_cluster_index(input_fn=lambda: self._input_fn(                                                                  
                                                                     batch_size=self.batch_size,
