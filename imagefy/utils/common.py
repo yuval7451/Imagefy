@@ -58,3 +58,4 @@ OUTPUT_DIR_PATH_PARAM = 'output_dir_path'
 IFERENCE_MODEL_DIR =  "D:\\Imagefy\\resources\\models\\InceptionResNetV2.1\\inference\\1602108545" # "D:\\Imagefy\\resources\\models\\InceptionResNetV2\\inference\\1601923417"
 EMBEDDINGS_TENSOR_NAME = "embeddings"
 LOG_FILENAME = 'session.log'
+SERVING_DEFAULT = "serving_default"
