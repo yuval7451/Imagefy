@@ -1,4 +1,4 @@
-=# Author: Yuval Kaneti
+# Author: Yuval Kaneti
 
 ## Imports 
 import logging 

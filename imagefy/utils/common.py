@@ -8,6 +8,8 @@ IMAGE_SIZE = 224
 INCEPTION_RESNET_IMAGE_SIZE = 224
 MINI_KMEANS_NUM_EPOCHS = 10
 MINI_KMEANS_BATCH_SIZE = 20
+KMEANS_BATCH_SIZE = 500
+
 MAX_WORKERS = 50
 IMAGE_TYPES = ['jpg', 'png', 'jpeg']
 LOG_DIR = 'logs'
@@ -22,6 +24,9 @@ MINI_KMEAND_DEST = 'mini_kmeans'
 INCEPTION_RESNET_DEST = 'inception'
 EPOCHS_DEST = 'num_epochs'
 BATCH_SIZE_DEST = 'batch_size'
+KMEANS_BATCH_SIZE_DEST = 'kmeans_batch_size'
+FILENAMES_DEST = 'filenames'
+
 NUM_CLUSTERS_DEST = 'num_clusters'
 SAVE_MODEL_DEST = 'save'
 NUM_ITERATION_DEST = 'num_iteration'

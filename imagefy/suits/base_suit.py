@@ -44,15 +44,18 @@ class BaseSuit(ABC):
         base_path = base_path
         base_model_dir = os.path.join(base_path, LOG_DIR, model_name) # type: ignore
         output_dir_path = os.path.join(base_path, OUTPUT_DIR_PATH, model_name, "*", "*") # type: ignore
+        output_dir = os.path.join(base_path, OUTPUT_DIR_PATH, model_name) # type: ignore
         os.makedirs(base_model_dir)
-        return (model_name, base_path, base_model_dir, output_dir_path)
+        os.makedirs(output_dir) # type: ignore
+        return (model_name, base_path, base_model_dir, output_dir_path, output_dir)
 
     def Initialize(self):
         # NOTE importent directories for the model
         (self.model_name, 
         self.base_path, 
         self.base_model_dir, 
-        self.output_dir_path) = self._set_model_directories()
+        self.output_dir_path,
+        self.output_dir) = self._set_model_directories()
         # Logging & stuff
         self.initialize_logging()
         # Gpu's
@@ -63,7 +66,7 @@ class BaseSuit(ABC):
     def initialize_logging(self):
         # Log files
         #FIXME:
-        log_path = os.path.join(self.base_model_dir, LOG_FILENAME)        
+        log_path = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, LOG_FILENAME) # type: ignore     
         FileHandler = logging.FileHandler(log_path)
         FileHandler.setLevel(logging.DEBUG)
         formatter = logging.Formatter('%(levelname)s - %(name)s - %(filename)s - %(funcName)s - %(asctime)s - %(message)s')

@@ -2,11 +2,11 @@
 
 ## *What is It?*
 ---
-- **This Brunch is under heavy Development, for releases refer to [master](https://github.com/yuval7451/Imagefy/tree/master)**
 - A AI Driven Module that will help you choose the best pictures
 
 ## *How Does It do that?*
 ---
+- This version of Imagefy will take batches if Images and will do the full process on each batch
 - Imagefy Uses KMeans Clustering & InceptionResNetV2 CNN in order to Group  Images by Similarity and then choose the best image out of every group
 
 ## *Recomended setup*

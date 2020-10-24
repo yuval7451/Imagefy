@@ -29,7 +29,7 @@ class InceptionResnetTensorflowWraper(BaseWraper):
         self.config = InceptionConfig()
         self.predictor = tf.saved_model.load(self.inference_model_dir) 
         
-    def run(self) -> InceptionResnetTensorflowWraperOutput: # type: ignore
+    def run(self):
         """
         @return C{InceptionResnetTensorflowWraperOutput} -> the clustering result, used for IOWraper.
         @remarks:
@@ -43,7 +43,7 @@ class InceptionResnetTensorflowWraper(BaseWraper):
         
         return self.wraper_output
 
-    def predict(self) -> InceptionResnetTensorflowWraperOutput: # type: ignore
+    def predict(self):
         """
         @return C{InceptionResnetTensorflowWraperOutput} -> the Predicted output, will be used for IOWraper.
         @remarks:

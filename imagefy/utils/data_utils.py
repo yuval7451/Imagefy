@@ -1,8 +1,10 @@
+#! /usr/bin/env python3
 #Author: Yuval Kaneti
 
 import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import sys
 import glob
+import json
 import shutil
 import logging 
 import numpy as np
@@ -11,8 +13,13 @@ import tensorflow as tf
 import concurrent.futures
 from typing import List
 from abc import ABC, abstractmethod
-from imagefy.utils.common import INCEPTION_RESNET_TENSORFLOW_WRAPER_OUTPUT, OUTPUT_DIR_PATH, CLUSTER_NAME_FORMAT, MAX_WORKERS, \
+from imagefy.utils.common import INCEPTION_RESNET_TENSORFLOW_WRAPER_OUTPUT, LOG_FILENAME, OUTPUT_DIR_PATH, CLUSTER_NAME_FORMAT, MAX_WORKERS, \
     TOP_DEST, INCEPTION_RESNET_IMAGE_SIZE
+
+# from imagefy.wrapers.inception_resnet_tensorflow_wraper import InceptionResnetTensorflowWraperOutput
+# from imagefy.wrapers.mini_batch_kmeans_tensorflow_wraper import MiniBatchKmeansWraperOutput
+
+
 
 class Image():
     """Image -> A Class That holds information about an Image."""
@@ -30,6 +37,7 @@ class Image():
         self.data = data
         self.top = False
         self.shape = (None,)
+        self.score = None
     
     def __str__(self):
         return f"src: {self.src_path}, dst: {self.dst_path}, cluster: {self.cluster_n}, hollow: {self.hollow}, top {self.top}"
@@ -60,7 +68,7 @@ class Image():
 
 class WraperOutput(ABC):
     """WraperOutput -> An Abstarct Class represnting a BaseWraper Return Value."""
-    def __init__(self, n_clusters: int, cluster_labels: list):
+    def __init__(self, n_clusters: int, cluster_labels: list):                     
         """
         @param n_cluster: C{int} -> The nmber of clusters.
         @param cluster_labels: C{list} -> the corosponding cluster index ordered by the data originial order.
@@ -71,6 +79,9 @@ class WraperOutput(ABC):
         self.n_clusters = n_clusters
         self.cluster_labels = cluster_labels
         self.name = self.__class__.__name__
+
+    def top(self):
+        pass
 
 class BaseLoader(ABC):
     """BaseLoader -> A BaseLoader Abstract class."""
@@ -96,7 +107,7 @@ class BaseLoader(ABC):
     
 class TensorLoader(BaseLoader):
     """TensorLoader -> A Scalbles solution for loading data using tf.data.Dataset API."""
-    def __init__(self, model_name: str, base_path: str, output_dir_path: str=None, **kwargs : dict) -> TensorLoader:
+    def __init__(self, model_name: str, base_path: str, output_dir_path: str=None, **kwargs : dict):
         """
         @param model_name: C{str} -> The model name, Taken for BaseSuit.model_name.
         @param base_path: C{str} -> The base path for logs & output, Taken from BaseSuit.base_path.
@@ -109,32 +120,32 @@ class TensorLoader(BaseLoader):
         super().__init__(**kwargs)
         self.AUTOTUNE = tf.data.experimental.AUTOTUNE
         self.dataset = None
-        self._image_names = np.ndarray([image_name for image_name in glob.glob(self.dir_path)])
+        logging.info(self.dir_path)
+        self._image_names = np.asarray([image_name for image_name in glob.glob(self.dir_path)]) #type: ignore
 
         self.model_name = model_name
         self.base_path = base_path
-        if output_dir_path is None:
-            self.output_dir_path = self.dir_path
-        else:
-            self.output_dir_path = output_dir_path
+        self.output_dir_path = output_dir_path
    
-    def mini_batch_kmeans_input_fn(self, batch_size: int, shuffle: bool, num_epochs: int, **kwrags: dict) -> tf.data.Dataset:
+    def mini_batch_kmeans_input_fn(self, batch_size: int, shuffle: bool, num_epochs: int, filenames: List[str], **kwrags: dict) -> tf.data.Dataset:
         """
         @param batch_size: C{int} -> The batch size for tf.data.Dataset.batch(...).
         @param shuffle: C{bool} -> Whether to shuffle the Dataset (during .list_files for better preformence).
         @param num_epochs: C{int} -> The number of epochs for tf.data.Dataset.repeat(...).
+        @param filenames: C{list} -> a List of filenames to load
         @param kwargs: C{dict} -> For future needs.
         @return tf.data.Dataset -> the dataset for KmeansTensorflowWraper
         """
         options = tf.data.Options()
         options.experimental_optimization.autotune_buffers = True
         options.experimental_optimization.autotune_cpu_budget = True
-        self.dataset = tf.data.Dataset.list_files(self.dir_path, shuffle=shuffle)
+        # NOTE: list_files(...) is used for the normal version of imagefy, we use from_tensor_slices inorder to control the amount of images.
+        self.dataset = tf.data.Dataset.from_tensor_slices(filenames)
         self.dataset = self.dataset.map(self._load_tensor, num_parallel_calls=self.AUTOTUNE)
         if batch_size is not None:
             self.dataset = self.dataset.batch(batch_size, drop_remainder=True).repeat(num_epochs)
         
-        self.dataset = self.dataset.cache()#.prefetch(self.AUTOTUNE)
+        self.dataset = self.dataset.cache() # ?.prefetch(self.AUTOTUNE)
         # ?self.dataset = self.dataset.apply(tf.data.experimental.prefetch_to_device('/device:GPU:0', buffer_size=self.AUTOTUNE))
         self.dataset = self.dataset.apply(tf.data.experimental.copy_to_device("/device:gpu:0"))
         self.dataset = self.dataset.prefetch(self.AUTOTUNE)
@@ -157,8 +168,8 @@ class TensorLoader(BaseLoader):
         dataset = dataset.with_options(options)
         return dataset
 
-    @tf.function
-    def _load_tensor(self, image_path: str) -> tf.Tensor:
+    # @tf.function
+    def _load_tensor(self, image_path: tf.Tensor) -> tf.Tensor:
         """
         @param image_path: C{tf.Tensor} -> The image path Tensor, created by tf.data.Dataset.list_files(...).
         @return C{tf.Tensor} -> A tensor image, normalized (-1, 1) & flattended.
@@ -172,7 +183,7 @@ class TensorLoader(BaseLoader):
         image = tf.reshape(image, [-1])
         return image
 
-    @tf.function
+    # @tf.function
     def _load_tensor_with_label(self, image_path: str) -> tf.Tensor:
         """
         @param image_path: C{tf.Tensor} -> The image path Tensor, created by tf.data.Dataset.list_files(...).
@@ -235,6 +246,7 @@ class IOWraper():
         self.model_name = model_name
         self.base_path = base_path
         # NOTE self._clean() is only used to remove the output directory.
+        self.cluster_offset = self.get_cluster_offsets()
 
     def _clean(self):
         """
@@ -257,7 +269,9 @@ class IOWraper():
                   IOWraper.move_data()
         """
         logging.debug("Merging Images & WraperOutput")
+        # NOTE: Because we are going to run kmeans multiple times, the cluster_n are relative and they shouldnot be, therefor we nead to establish an offset: self.cluster_offset
         for (image, cluster_label) in zip(self.kmeans_data, self.wraper_output.cluster_labels):
+            cluster_label += self.cluster_offset
             image.dst_dir = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, CLUSTER_NAME_FORMAT.format(cluster_label))
             image.cluster_n = int(cluster_label)
             # ?image.free() -> Only free if You dont want to use Tensorboard.
@@ -287,20 +301,25 @@ class IOWraper():
                  *ThreadPoolExecutor(@MAX_WORKERS).
                  *Might not be neaded for a small amount of directories.
                  *@IOWraper.move_data() can't be invoked befor this function, not output directories will exist.
-                 *If an error acourd it will be loged & raised.
         """
         logging.debug("Creating Output Directories")
+        # NOTE: we need cluster_offset because the cluster_n are relative to the current batch
         with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            future_to_dir = {}
-            for dir_index in range(self.wraper_output.n_clusters):
-                dir_path = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, f"cluster_{dir_index}")
-                future_to_dir[executor.submit(os.makedirs, dir_path)] = dir_index
+            try:
+                future_to_dir = {}
+                for dir_index in range(self.wraper_output.n_clusters):
+                    dir_index += self.cluster_offset
+                    dir_path = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, f"cluster_{dir_index}")
+                    future_to_dir[executor.submit(os.makedirs, dir_path)] = dir_index
 
-            dir_path = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, TOP_DEST)
-            future_to_dir[executor.submit(os.makedirs, dir_path)] = None 
+                dir_path = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, TOP_DEST)
+                future_to_dir[executor.submit(os.makedirs, dir_path)] = None 
 
-            for future in concurrent.futures.as_completed(future_to_dir):
-                    result = future.result()
+                for future in concurrent.futures.as_completed(future_to_dir):
+                        _ = future.result()
+            except Exception as e:
+                pass
+
         logging.debug("Finished Creating Output Directories")
 
     def set_inception_data(self, inception_data: list, wraper_output: WraperOutput):
@@ -322,14 +341,15 @@ class IOWraper():
             raise RuntimeError("inception data is None or wraper_output is the kmeans one, use IOWraper.set_inception_data(...) to set these varibles")
 
         logging.debug("Merging Inception data & WraperOutput")
-        for (image, predictor_output) in zip(self.inception_data, self.wraper_output.top(k=top)):
+        for (image, predictor_output) in zip(self.inception_data, self.wraper_output.top(k=top)): 
             image.dst_dir = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, TOP_DEST)
-            image.cluster_n = int(predictor_output._label)
-            if predictor_output.top:
+            image.cluster_n = self.cluster_offset + int(predictor_output._label)
+            image.score = predictor_output.score 
+            if predictor_output.top: 
                 image.top = True
 
             # ?image.free() -> Only free if You dont want to use Tensorboard.
-            image.flush(prefix=predictor_output.label)
+            image.flush(prefix=predictor_output.label) 
 
     def move_inception_data(self):
         """
@@ -348,3 +368,34 @@ class IOWraper():
                         pbar.update(1)
                         
         logging.debug("Finished Moving data")
+
+    def get_cluster_offsets(self):
+        """
+        @remarks:
+                *Because we are going to run kmeans multiple times, the cluster_n are relative and they shouldnot be, therefor we nead to establish an offset: self.cluster_offset
+
+        """
+        output_path = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name)
+        cluster_indexes = []
+        if os.path.exists(output_path):
+            for cluster_name in os.listdir(output_path):
+                if cluster_name not in [TOP_DEST, LOG_FILENAME]:
+                    cluster_indexes.append(int(cluster_name.split("_")[-1]))
+
+            if len(cluster_indexes) > 0:
+                return max(cluster_indexes)
+                
+        return 0
+
+    def save_image_predictions(self):
+        """
+        @remarks:
+                * None
+        """
+        predictions = {}
+        for image in sorted(self.inception_data, key=lambda image: image.score, reverse=True): # type: ignore
+            predictions[image.basename] = {"score": image.score, "src_path": image.src_path, "dst_path": image.dst_path, "top": image.top}
+
+        predictions_file = os.path.join(self.base_path, OUTPUT_DIR_PATH, self.model_name, "predictions.json")
+        with open(predictions_file, "w") as fd:
+            fd.write(json.dumps(predictions))

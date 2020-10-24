@@ -1,7 +1,8 @@
 # Author: Yuval Kaneti
 
 ## Imports
-import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import os
+from typing import List; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import logging 
 import tensorflow as tf
 from imagefy.wrapers.config import KmeansConfig
@@ -10,11 +11,12 @@ from imagefy.utils.data_utils import  WraperOutput
 
 class MiniBatchKmeansTensorflowWraper(BaseWraper):
     """MiniBatchKmeansTensorflowWraper -> An implemntion of Minibatch Kmeans in Tensorflow."""
-    def __init__(self, num_epochs: int, num_clusters: int, batch_size: int, **kwargs: dict):
+    def __init__(self, num_epochs: int, num_clusters: int, batch_size: int, filenames: List[str], **kwargs: dict):
         """
         @param num_epochs: C{int} -> The number of Training epochs.
         @param num_clusters: C{int} -> The number of Clusters.
         @param batch_size: C{int} -> The Batch size.
+        @param filenames: C{list} -> The Filenames for the data.
         @param kwargs: C{dict} -> For futre use.
         @local config: C{config.Config} -> the config & hooks handler for the estimator.
         """
@@ -22,6 +24,7 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
         self.num_epochs = num_epochs
         self.num_clusters = num_clusters
         self.batch_size = batch_size
+        self.filenames = filenames
         self.config = KmeansConfig(self.base_model_dir)
 
     def run(self):
@@ -53,12 +56,14 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
             self.cluster.train(input_fn=lambda: self._input_fn(                                
                                     batch_size=self.batch_size,
                                     shuffle=False, 
-                                    num_epochs=self.num_epochs))
+                                    num_epochs=self.num_epochs,
+                                    filenames=self.filenames))
                                     
             self.score = self.cluster.score(input_fn=lambda: self._input_fn(                                       
                                         batch_size=self.batch_size,
                                         shuffle=False, 
-                                        num_epochs=self.num_epochs))
+                                        num_epochs=self.num_epochs,
+                                        filenames=self.filenames))
 
             logging.info(f"score: {self.score}")
     
@@ -74,7 +79,8 @@ class MiniBatchKmeansTensorflowWraper(BaseWraper):
             cluster_indices = list(self.cluster.predict_cluster_index(input_fn=lambda: self._input_fn(                                                                  
                                                                     batch_size=self.batch_size,
                                                                     shuffle=False, 
-                                                                    num_epochs=self.num_epochs)))
+                                                                    num_epochs=self.num_epochs,
+                                                                    filenames=self.filenames)))
         logging.debug(f"There are {len(cluster_indices)} labels")       
         return MiniBatchKmeansWraperOutput(cluster_labels=cluster_indices)
     

@@ -2,7 +2,7 @@
 
 import os
 import argparse
-from imagefy.utils.common import IMAGE_SIZE, MINI_KMEANS_NUM_EPOCHS, EPOCHS_DEST, DIR_DEST, TOP_DEST, TOP_PARAM, VERBOSE_DEST, \
+from imagefy.utils.common import IMAGE_SIZE, KMEANS_BATCH_SIZE, KMEANS_BATCH_SIZE_DEST, MINI_KMEANS_NUM_EPOCHS, EPOCHS_DEST, DIR_DEST, TOP_DEST, TOP_PARAM, VERBOSE_DEST, \
     SIZE_DEST, TENSORBOARD_DEST, NUM_CLUSTERS_DEST, BATCH_SIZE_DEST, \
         MINI_KMEANS_BATCH_SIZE, BASE_PATH_DEST
 
@@ -34,6 +34,10 @@ def arg_parser():
     main_parser.add_argument('-b', '--batch_size', action='store', type=int, 
                         required=True, help="The batch size", dest=BATCH_SIZE_DEST,
                         default=MINI_KMEANS_BATCH_SIZE)
+
+    main_parser.add_argument('-k', '--kmeans_batch_size', action='store', type=int, 
+                        required=True, help="The batch size", dest=KMEANS_BATCH_SIZE_DEST,
+                        default=KMEANS_BATCH_SIZE)
 
     main_parser.add_argument('-c','--num_clusters', action='store', type=int, 
                         required=True, help="The number of clusters in Mini Batch Kmeans", dest=NUM_CLUSTERS_DEST)
